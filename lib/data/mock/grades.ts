@@ -1,0 +1,48 @@
+import type { GradeRecord } from "@/types/norse-one";
+
+export const mockGrades: GradeRecord[] = [
+  {
+    id: "grade-001",
+    studentId: "student-001",
+    courseId: "course-math-001",
+    courseName: "Mathematics",
+    currentGrade: 94,
+    letterGrade: "A",
+    instructorId: "usr-teacher-001",
+    instructorName: "Ms. Raven",
+    semester: "FALL",
+  },
+  {
+    id: "grade-002",
+    studentId: "student-001",
+    courseId: "course-reading-001",
+    courseName: "Reading & Literature",
+    currentGrade: 91,
+    letterGrade: "A-",
+    instructorId: "usr-teacher-001",
+    instructorName: "Mrs. Ellis",
+    semester: "FALL",
+  },
+  {
+    id: "grade-003",
+    studentId: "student-001",
+    courseId: "course-science-001",
+    courseName: "Science",
+    currentGrade: 89,
+    letterGrade: "B+",
+    instructorId: "usr-teacher-001",
+    instructorName: "Mr. Carter",
+    semester: "FALL",
+  },
+  {
+    id: "grade-004",
+    studentId: "student-001",
+    courseId: "course-life-001",
+    courseName: "Life Skills",
+    currentGrade: 96,
+    letterGrade: "A",
+    instructorId: "usr-teacher-001",
+    instructorName: "Ms. Morgan",
+    semester: "FALL",
+  },
+];

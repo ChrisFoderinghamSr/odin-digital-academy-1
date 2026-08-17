@@ -1,0 +1,48 @@
+import type { Course } from "@/types/norse-one";
+
+export const mockCourses: Course[] = [
+  {
+    id: "course-math-001",
+    name: "Numbers & Operations",
+    subject: "Mathematics",
+    academicLevel: "GRADE_5",
+    instructorId: "usr-teacher-001",
+    instructorName: "Ms. Raven",
+    semester: "FALL",
+    progress: 82,
+    active: true,
+  },
+  {
+    id: "course-reading-001",
+    name: "Literature & Comprehension",
+    subject: "Reading & Literature",
+    academicLevel: "GRADE_5",
+    instructorId: "usr-teacher-001",
+    instructorName: "Mrs. Ellis",
+    semester: "FALL",
+    progress: 74,
+    active: true,
+  },
+  {
+    id: "course-science-001",
+    name: "Living Systems",
+    subject: "Science",
+    academicLevel: "GRADE_5",
+    instructorId: "usr-teacher-001",
+    instructorName: "Mr. Carter",
+    semester: "FALL",
+    progress: 68,
+    active: true,
+  },
+  {
+    id: "course-life-001",
+    name: "Responsibility & Leadership",
+    subject: "Life Skills",
+    academicLevel: "GRADE_5",
+    instructorId: "usr-teacher-001",
+    instructorName: "Ms. Morgan",
+    semester: "FALL",
+    progress: 91,
+    active: true,
+  },
+];
