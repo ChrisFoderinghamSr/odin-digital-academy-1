@@ -44,7 +44,9 @@ export default async function DashboardPage() {
   return (
     <NorseOneShell role={role}>
       {role === "STUDENT" && (
-        <StudentDashboard />
+        <StudentDashboard
+          userId={session.user.id}
+        />
       )}
 
       {role === "PARENT" && (

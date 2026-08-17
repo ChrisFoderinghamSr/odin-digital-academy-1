@@ -2,21 +2,38 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
+
 import NorseOneShell from "@/components/layout/norse-one/NorseOneShell";
 
-import { mockCourses } from "@/lib/data/mock/courses";
-import { mockStudents } from "@/lib/data/mock/students";
-import { mockAssignments } from "@/lib/data/mock/assignments";
+import {
+  getStudentAssignments,
+  getStudentCourses,
+  getStudentByUserId,
+} from "@/lib/services/norse-one/student-service";
 
 import type { NorseOneRole } from "@/types/norse-one";
 
-function formatAcademicLevel(level: string) {
-  return level
-    .replace("GRADE_", "Grade ")
-    .replace("PRE_K_", "Pre-K ");
+function formatAcademicLevel(
+  level: string
+): string {
+  const labels: Record<string, string> = {
+    TODDLER: "Toddler",
+    PRE_K_4: "Pre-K 4",
+    PRE_K_5: "Pre-K 5",
+    KINDERGARTEN: "Kindergarten",
+    GRADE_1: "Grade 1",
+    GRADE_2: "Grade 2",
+    GRADE_3: "Grade 3",
+    GRADE_4: "Grade 4",
+    GRADE_5: "Grade 5",
+  };
+
+  return labels[level] ?? level;
 }
 
-function getProgressLabel(progress: number) {
+function getProgressLabel(
+  progress: number
+): string {
   if (progress >= 90) {
     return "Excellent progress";
   }
@@ -32,6 +49,17 @@ function getProgressLabel(progress: number) {
   return "Getting started";
 }
 
+function formatAssignmentStatus(
+  status: string
+): string {
+  return status
+    .replaceAll("_", " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (character) =>
+      character.toUpperCase()
+    );
+}
+
 export default async function NorseOneLearningPage() {
   const session = await auth();
 
@@ -41,22 +69,38 @@ export default async function NorseOneLearningPage() {
 
   const role = session.user.role as NorseOneRole;
 
-  const student =
-    mockStudents.find(
-      (candidate) =>
-        candidate.userId === session.user.id
-    ) ?? mockStudents[0];
+  if (role !== "STUDENT") {
+    redirect("/norse-one/dashboard");
+  }
 
-  const courses = mockCourses.filter(
-    (course) =>
-      course.active &&
-      course.academicLevel === student.academicLevel
+  const student = getStudentByUserId(
+    session.user.id
   );
 
-  const assignments = mockAssignments.filter(
-    (assignment) =>
-      assignment.studentId === student.id
+  if (!student) {
+    return (
+      <NorseOneShell role={role}>
+        <section className="norse-page-heading">
+          <span>STUDENT RECORD</span>
+
+          <h1>Learning record unavailable.</h1>
+
+          <p>
+            Your account is authenticated, but it is
+            not currently connected to a student
+            academic record.
+          </p>
+        </section>
+      </NorseOneShell>
+    );
+  }
+
+  const courses = getStudentCourses(
+    student.id
   );
+
+  const assignments =
+    getStudentAssignments(student.id);
 
   const nextAssignment =
     assignments
@@ -82,10 +126,11 @@ export default async function NorseOneLearningPage() {
         )
       : 0;
 
-  const completedCourses = courses.filter(
-    (course) =>
-      course.progress >= 100
-  ).length;
+  const completedCourses =
+    courses.filter(
+      (course) =>
+        course.progress >= 100
+    ).length;
 
   const activeAssignments =
     assignments.filter(
@@ -112,9 +157,9 @@ export default async function NorseOneLearningPage() {
         <h1>My Learning</h1>
 
         <p>
-          Welcome back, {student.firstName}. Continue
-          your academic journey from one connected
-          learning workspace.
+          Welcome back, {student.firstName}.
+          Continue your academic journey from one
+          connected learning workspace.
         </p>
       </section>
 
@@ -190,16 +235,14 @@ export default async function NorseOneLearningPage() {
               </span>
 
               <span>
-                {nextAssignment.pointsPossible} points
+                {nextAssignment.pointsPossible}{" "}
+                points
               </span>
 
               <span>
-                {nextAssignment.status
-                  .replace(/_/g, " ")
-                  .toLowerCase()
-                  .replace(/\b\w/g, (character) =>
-                    character.toUpperCase()
-                  )}
+                {formatAssignmentStatus(
+                  nextAssignment.status
+                )}
               </span>
             </div>
           </div>
@@ -283,6 +326,7 @@ export default async function NorseOneLearningPage() {
               className="norse-learning-card-link"
             >
               Open Course
+
               <span aria-hidden="true">
                 →
               </span>

@@ -3,28 +3,59 @@ import Link from "next/link";
 import {
   getStudentAssignments,
   getStudentCourses,
-  getStudentById,
+  getStudentByUserId,
 } from "@/lib/services/norse-one/student-service";
 
-const STUDENT_ID = "student-001";
+interface StudentDashboardProps {
+  userId: string;
+}
 
-export default function StudentDashboard() {
-  const student = getStudentById(STUDENT_ID);
-  const courses = getStudentCourses(STUDENT_ID);
-  const assignments = getStudentAssignments(STUDENT_ID);
+function formatAcademicLevel(
+  academicLevel: string
+): string {
+  const labels: Record<string, string> = {
+    TODDLER: "Toddler",
+    PRE_K_4: "Pre-K 4",
+    PRE_K_5: "Pre-K 5",
+    KINDERGARTEN: "Kindergarten",
+    GRADE_1: "Grade 1",
+    GRADE_2: "Grade 2",
+    GRADE_3: "Grade 3",
+    GRADE_4: "Grade 4",
+    GRADE_5: "Grade 5",
+  };
+
+  return labels[academicLevel] ?? academicLevel;
+}
+
+export default function StudentDashboard({
+  userId,
+}: StudentDashboardProps) {
+  const student = getStudentByUserId(userId);
 
   if (!student) {
     return (
       <section className="norse-page-heading">
         <span>STUDENT RECORD</span>
+
         <h1>Student record unavailable.</h1>
+
         <p>
-          The requested student record could not be
-          located.
+          Your authenticated account is not currently
+          connected to a student record.
         </p>
       </section>
     );
   }
+
+  const courses = getStudentCourses(student.id);
+
+  const assignments =
+    getStudentAssignments(student.id);
+
+  const academicLevel = formatAcademicLevel(
+    student.academicLevel
+  );
 
   return (
     <>
@@ -47,36 +78,54 @@ export default function StudentDashboard() {
 
         <div className="norse-academic-badge">
           <span>ACADEMIC LEVEL</span>
-          <strong>Grade 5</strong>
-          <small>Preparatory Academy</small>
+
+          <strong>{academicLevel}</strong>
+
+          <small>
+            Odin Digital Academy
+          </small>
         </div>
       </section>
 
       <section className="norse-stat-grid">
         <article className="norse-stat-card">
           <span>COURSES</span>
+
           <strong>{courses.length}</strong>
+
           <small>Active courses</small>
         </article>
 
         <article className="norse-stat-card">
           <span>ASSIGNMENTS</span>
+
           <strong>{assignments.length}</strong>
+
           <small>Current assignments</small>
         </article>
 
         <article className="norse-stat-card">
           <span>GPA</span>
-          <strong>{student.currentGpa ?? "N/A"}</strong>
-          <small>Current academic GPA</small>
+
+          <strong>
+            {student.currentGpa ?? "N/A"}
+          </strong>
+
+          <small>
+            Current academic GPA
+          </small>
         </article>
 
         <article className="norse-stat-card">
           <span>ATTENDANCE</span>
+
           <strong>
             {student.attendanceRate ?? 0}%
           </strong>
-          <small>Current attendance</small>
+
+          <small>
+            Current attendance
+          </small>
         </article>
       </section>
 
@@ -85,6 +134,7 @@ export default function StudentDashboard() {
           <div className="norse-panel-header">
             <div>
               <span>ACADEMIC PROGRESS</span>
+
               <h2>My Learning</h2>
             </div>
 
@@ -104,8 +154,14 @@ export default function StudentDashboard() {
                 </div>
 
                 <div className="course-information">
-                  <span>{course.subject}</span>
-                  <strong>{course.name}</strong>
+                  <span>
+                    {course.subject}
+                  </span>
+
+                  <strong>
+                    {course.name}
+                  </strong>
+
                   <small>
                     {course.instructorName}
                   </small>
@@ -121,7 +177,9 @@ export default function StudentDashboard() {
                     />
                   </div>
 
-                  <strong>{course.progress}%</strong>
+                  <strong>
+                    {course.progress}%
+                  </strong>
                 </div>
               </article>
             ))}
@@ -132,6 +190,7 @@ export default function StudentDashboard() {
           <div className="norse-panel-header">
             <div>
               <span>UPCOMING WORK</span>
+
               <h2>Assignments</h2>
             </div>
 
@@ -157,7 +216,8 @@ export default function StudentDashboard() {
                 </div>
 
                 <small>
-                  {assignment.status.replace("_", " ")}
+                  {assignment.status
+                    .replaceAll("_", " ")}
                 </small>
               </article>
             ))}

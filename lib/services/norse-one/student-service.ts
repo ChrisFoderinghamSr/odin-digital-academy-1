@@ -17,7 +17,17 @@ import type {
 export function getStudentById(
   studentId: string
 ): StudentProfile | undefined {
-  return mockStudents.find((student) => student.id === studentId);
+  return mockStudents.find(
+    (student) => student.id === studentId
+  );
+}
+
+export function getStudentByUserId(
+  userId: string
+): StudentProfile | undefined {
+  return mockStudents.find(
+    (student) => student.userId === userId
+  );
 }
 
 export function getStudentCourses(
@@ -30,7 +40,9 @@ export function getStudentCourses(
   }
 
   return mockCourses.filter(
-    (course) => course.academicLevel === student.academicLevel
+    (course) =>
+      course.academicLevel === student.academicLevel &&
+      course.active
   );
 }
 
@@ -38,7 +50,8 @@ export function getStudentAssignments(
   studentId: string
 ): Assignment[] {
   return mockAssignments.filter(
-    (assignment) => assignment.studentId === studentId
+    (assignment) =>
+      assignment.studentId === studentId
   );
 }
 
