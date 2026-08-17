@@ -15,6 +15,10 @@ export type NorseOnePermission =
   | "ARCHIVE_CURRICULUM"
   | "RESTORE_CURRICULUM"
   | "VIEW_CURRICULUM_HISTORY"
+  | "MANAGE_CURRICULUM"
+
+  // Classrooms
+  | "MANAGE_CLASSROOM"
 
   // Attendance
   | "VIEW_OWN_ATTENDANCE"
@@ -58,6 +62,7 @@ export type NorseOnePermission =
   | "WITHDRAW_ENROLLMENT"
   | "ARCHIVE_ENROLLMENT"
   | "VIEW_ENROLLMENT_HISTORY"
+  | "MANAGE_ENROLLMENT"
 
   // Assignments
   | "VIEW_OWN_ASSIGNMENTS"
@@ -131,13 +136,17 @@ const permissionMap: Record<
   ASSISTANT: [
     "VIEW_OWN_PROFILE",
     "VIEW_STUDENTS",
+
     "VIEW_CURRICULUM",
     "SEARCH_CURRICULUM",
+
     "VIEW_CLASSROOM_ATTENDANCE",
     "SEARCH_ATTENDANCE",
     "CREATE_ATTENDANCE",
     "EDIT_ATTENDANCE",
+
     "VIEW_CLASSROOM_ASSIGNMENTS",
+
     "VIEW_STAFF_MESSAGES",
     "SEND_MESSAGE",
   ],
@@ -165,6 +174,7 @@ const permissionMap: Record<
     "VIEW_OWN_PROFILE",
     "VIEW_STUDENTS",
 
+    // Curriculum
     "VIEW_CURRICULUM",
     "SEARCH_CURRICULUM",
     "CREATE_CURRICULUM",
@@ -173,7 +183,12 @@ const permissionMap: Record<
     "ARCHIVE_CURRICULUM",
     "RESTORE_CURRICULUM",
     "VIEW_CURRICULUM_HISTORY",
+    "MANAGE_CURRICULUM",
 
+    // Classrooms
+    "MANAGE_CLASSROOM",
+
+    // Attendance
     "VIEW_CLASSROOM_ATTENDANCE",
     "SEARCH_ATTENDANCE",
     "CREATE_ATTENDANCE",
@@ -181,12 +196,14 @@ const permissionMap: Record<
     "CORRECT_ATTENDANCE",
     "VIEW_ATTENDANCE_HISTORY",
 
+    // Messages
     "SEARCH_MESSAGES",
     "SEND_MESSAGE",
     "EDIT_MESSAGE",
     "ARCHIVE_MESSAGE",
     "VIEW_MESSAGE_HISTORY",
 
+    // Admissions
     "SEARCH_ADMISSIONS",
     "CREATE_ADMISSION",
     "EDIT_ADMISSION",
@@ -196,6 +213,7 @@ const permissionMap: Record<
     "ARCHIVE_ADMISSION",
     "VIEW_ADMISSION_HISTORY",
 
+    // Enrollment
     "SEARCH_ENROLLMENT",
     "CREATE_ENROLLMENT",
     "EDIT_ENROLLMENT",
@@ -203,7 +221,9 @@ const permissionMap: Record<
     "WITHDRAW_ENROLLMENT",
     "ARCHIVE_ENROLLMENT",
     "VIEW_ENROLLMENT_HISTORY",
+    "MANAGE_ENROLLMENT",
 
+    // Administration
     "VIEW_REPORTS",
     "MANAGE_USERS",
   ],
@@ -212,6 +232,7 @@ const permissionMap: Record<
     "VIEW_OWN_PROFILE",
     "VIEW_STUDENTS",
 
+    // Curriculum
     "VIEW_CURRICULUM",
     "SEARCH_CURRICULUM",
     "CREATE_CURRICULUM",
@@ -220,7 +241,12 @@ const permissionMap: Record<
     "ARCHIVE_CURRICULUM",
     "RESTORE_CURRICULUM",
     "VIEW_CURRICULUM_HISTORY",
+    "MANAGE_CURRICULUM",
 
+    // Classrooms
+    "MANAGE_CLASSROOM",
+
+    // Attendance
     "VIEW_CLASSROOM_ATTENDANCE",
     "SEARCH_ATTENDANCE",
     "CREATE_ATTENDANCE",
@@ -228,12 +254,14 @@ const permissionMap: Record<
     "CORRECT_ATTENDANCE",
     "VIEW_ATTENDANCE_HISTORY",
 
+    // Messages
     "SEARCH_MESSAGES",
     "SEND_MESSAGE",
     "EDIT_MESSAGE",
     "ARCHIVE_MESSAGE",
     "VIEW_MESSAGE_HISTORY",
 
+    // Admissions
     "SEARCH_ADMISSIONS",
     "CREATE_ADMISSION",
     "EDIT_ADMISSION",
@@ -243,6 +271,7 @@ const permissionMap: Record<
     "ARCHIVE_ADMISSION",
     "VIEW_ADMISSION_HISTORY",
 
+    // Enrollment
     "SEARCH_ENROLLMENT",
     "CREATE_ENROLLMENT",
     "EDIT_ENROLLMENT",
@@ -250,7 +279,9 @@ const permissionMap: Record<
     "WITHDRAW_ENROLLMENT",
     "ARCHIVE_ENROLLMENT",
     "VIEW_ENROLLMENT_HISTORY",
+    "MANAGE_ENROLLMENT",
 
+    // Administration
     "VIEW_REPORTS",
     "MANAGE_USERS",
     "VIEW_AUDIT_LOG",

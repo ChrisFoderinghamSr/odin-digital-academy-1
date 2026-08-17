@@ -4,10 +4,12 @@ export default function NorseOneLearningPage() {
       <section className="page-hero">
         <div className="container page-hero-content">
           <span className="section-label">NORSE ONE</span>
+
           <h1>
             The learning
             <span> environment.</span>
           </h1>
+
           <p>
             Students move through lessons, assignments, projects, assessments,
             and progress tracking through one connected workspace.
@@ -19,7 +21,8 @@ export default function NorseOneLearningPage() {
         <div className="container learning-preview">
           <div className="learning-dashboard-card">
             <span className="section-label">STUDENT LEARNING</span>
-            <h2>Today's Learning</h2>
+
+            <h2>Today&apos;s Learning</h2>
 
             <div className="learning-row">
               <span>01</span>
@@ -30,7 +33,7 @@ export default function NorseOneLearningPage() {
             <div className="learning-row">
               <span>02</span>
               <strong>Reading</strong>
-              <small>Character & Setting</small>
+              <small>Character &amp; Setting</small>
             </div>
 
             <div className="learning-row">
@@ -48,6 +51,7 @@ export default function NorseOneLearningPage() {
 
           <div className="learning-copy">
             <span className="section-label">DESIGNED FOR GROWTH</span>
+
             <h2>
               Learn at the right
               <span> level.</span>

@@ -45,10 +45,12 @@ export default function AdmissionsPage() {
       <section className="admissions-hero">
         <div className="container page-hero-content">
           <span className="section-label">ADMISSIONS PLATFORM</span>
+
           <h1>
             Begin the journey.
             <span> Become a Raven.</span>
           </h1>
+
           <p>
             Odin Digital Academy uses one connected admissions and enrollment
             experience designed to make the transition from applicant to
@@ -71,6 +73,7 @@ export default function AdmissionsPage() {
         <div className="container">
           <div className="section-heading dark-heading">
             <span className="section-label">THE PROCESS</span>
+
             <h2>
               From application to
               <span> enrollment.</span>
@@ -81,7 +84,9 @@ export default function AdmissionsPage() {
             {steps.map((step) => (
               <article className="admission-step" key={step.number}>
                 <span>{step.number}</span>
+
                 <h3>{step.title}</h3>
+
                 <p>{step.description}</p>
               </article>
             ))}
@@ -92,7 +97,10 @@ export default function AdmissionsPage() {
       <section className="section section-black">
         <div className="container split-section">
           <div>
-            <span className="section-label gold-label">ADMISSION PHILOSOPHY</span>
+            <span className="section-label gold-label">
+              ADMISSION PHILOSOPHY
+            </span>
+
             <h2>
               High standards.
               <br />
@@ -107,7 +115,9 @@ export default function AdmissionsPage() {
             </p>
 
             <p>
-              Application requirements, documentation, placement assessments, and enrollment policies can be configured to meet the academy's operating requirements and applicable local regulations.
+              Application requirements, documentation, placement assessments,
+              and enrollment policies can be configured to meet the academy&apos;s
+              operating requirements and applicable local regulations.
             </p>
           </div>
         </div>

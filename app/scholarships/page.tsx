@@ -5,7 +5,9 @@ export default function ScholarshipsPage() {
     <main className="public-page">
       <section className="scholarship-section scholarship-page-hero">
         <div className="container scholarship-content">
-          <span className="section-label gold-label">ACCESS & OPPORTUNITY</span>
+          <span className="section-label gold-label">
+            ACCESS &amp; OPPORTUNITY
+          </span>
 
           <h1>
             Give students the
@@ -13,7 +15,7 @@ export default function ScholarshipsPage() {
           </h1>
 
           <p>
-            Odin Digital Academy's scholarship model is designed to support
+            Odin Digital Academy&apos;s scholarship model is designed to support
             access to education and technology for qualifying students.
           </p>
         </div>
@@ -30,7 +32,7 @@ export default function ScholarshipsPage() {
             <h3>Learning Support</h3>
 
             <p>
-              Scholarship opportunities may support access to the academy's
+              Scholarship opportunities may support access to the academy&apos;s
               core educational program according to established eligibility
               requirements.
             </p>

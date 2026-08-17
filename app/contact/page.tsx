@@ -4,13 +4,15 @@ export default function ContactPage() {
       <section className="page-hero compact-page-hero">
         <div className="container page-hero-content">
           <span className="section-label">CONTACT</span>
+
           <h1>
             Connect with
             <span> Odin Academy.</span>
           </h1>
+
           <p>
             Questions about admissions, academics, technology, or Norse One?
-            We're building a connected support experience for every family.
+            We&apos;re building a connected support experience for every family.
           </p>
         </div>
       </section>
@@ -19,14 +21,15 @@ export default function ContactPage() {
         <div className="container contact-layout">
           <div>
             <span className="section-label">CONTACT THE ACADEMY</span>
+
             <h2>
-              We're here to
+              We&apos;re here to
               <span> help.</span>
             </h2>
 
             <p className="contact-copy">
               Use the form to send an inquiry. Production communications will
-              be routed through the academy's secure support system.
+              be routed through the academy&apos;s secure support system.
             </p>
           </div>
 
@@ -44,6 +47,7 @@ export default function ContactPage() {
 
               <label>
                 Inquiry Type
+
                 <select name="type">
                   <option value="">Select</option>
                   <option value="admissions">Admissions</option>

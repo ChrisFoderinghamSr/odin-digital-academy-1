@@ -1,11 +1,21 @@
-import NextAuth from "next-auth";
+import { auth } from "@/auth";
+import { NextResponse } from "next/server";
 
-import { authConfig } from "./auth.config";
+export default auth((request) => {
+  if (!request.auth?.user) {
+    const loginUrl = new URL("/login", request.nextUrl.origin);
 
-export default NextAuth(authConfig).auth;
+    loginUrl.searchParams.set(
+      "callbackUrl",
+      request.nextUrl.pathname
+    );
+
+    return NextResponse.redirect(loginUrl);
+  }
+
+  return NextResponse.next();
+});
 
 export const config = {
-  matcher: [
-    "/norse-one/:path*",
-  ],
+  matcher: ["/norse-one/:path*"],
 };

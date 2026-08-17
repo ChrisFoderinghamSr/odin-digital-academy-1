@@ -1,73 +1,65 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs";
 import { z } from "zod";
 
-import { authConfig } from "./auth.config";
+import authConfig from "@/auth.config";
+import { mockUsers } from "@/lib/data/mock/users";
+import type { NorseOneRole } from "@/types/norse-one";
 
-const loginSchema = z.object({
+const credentialsSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(6),
+  password: z.string().min(1),
 });
 
-const developmentAccounts = [
-  {
-    id: "usr-parent-001",
-    firstName: "Christian",
-    lastName: "Foderingham",
-    email: "parent@example.com",
-    password: "RavenParent2026!",
-    role: "PARENT",
-  },
-  {
-    id: "usr-student-001",
-    firstName: "Raven",
-    lastName: "Student",
-    email: "student@example.com",
-    password: "RavenStudent2026!",
-    role: "STUDENT",
-  },
-  {
-    id: "usr-teacher-001",
-    firstName: "Morgan",
-    lastName: "Raven",
-    email: "teacher@example.com",
-    password: "RavenTeacher2026!",
-    role: "TEACHER",
-  },
-  {
-    id: "usr-admin-001",
-    firstName: "Academy",
-    lastName: "Administrator",
-    email: "admin@example.com",
-    password: "RavenAdmin2026!",
-    role: "ADMINISTRATOR",
-  },
-];
+const demoPasswordHash =
+  process.env.NORSE_DEMO_PASSWORD_HASH ??
+  "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
 
   providers: [
     Credentials({
-      async authorize(credentials) {
-        const parsedCredentials =
-          loginSchema.safeParse(credentials);
+      name: "NORSE ONE Credentials",
 
-        if (!parsedCredentials.success) {
+      credentials: {
+        email: {
+          label: "Email Address",
+          type: "email",
+        },
+
+        password: {
+          label: "Password",
+          type: "password",
+        },
+      },
+
+      async authorize(credentials) {
+        const parsed = credentialsSchema.safeParse(credentials);
+
+        if (!parsed.success) {
           return null;
         }
 
-        const { email, password } =
-          parsedCredentials.data;
+        const { email, password } = parsed.data;
 
-        const user = developmentAccounts.find(
-          (account) =>
-            account.email.toLowerCase() ===
-              email.toLowerCase() &&
-            account.password === password
+        const user = mockUsers.find(
+          (candidate) =>
+            candidate.email.toLowerCase() === email.toLowerCase() &&
+            candidate.active
         );
 
         if (!user) {
+          return null;
+        }
+
+        const passwordValid = await bcrypt.compare(
+          password,
+          demoPasswordHash
+        );
+
+        if (!passwordValid) {
           return null;
         }
 
@@ -85,7 +77,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.role = user.role;
+        token.role = user.role as NorseOneRole;
       }
 
       return token;
@@ -93,8 +85,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as string;
+        session.user.id = token.id ?? "";
+        session.user.role =
+          (token.role as NorseOneRole) ?? "STUDENT";
       }
 
       return session;

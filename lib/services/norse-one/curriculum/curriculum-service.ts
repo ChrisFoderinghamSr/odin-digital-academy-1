@@ -1,7 +1,5 @@
 import { prisma } from "@/lib/database/prisma";
-import {
-  requirePermission,
-} from "@/lib/auth/authorization";
+import { requirePermission } from "@/lib/auth/authorization";
 import { normalizePagination } from "@/lib/database/query-types";
 
 export interface CurriculumSearchInput {
@@ -162,9 +160,7 @@ export async function createCurriculum(
   const title = input.title.trim();
 
   if (!title) {
-    throw new Error(
-      "Curriculum title is required."
-    );
+    throw new Error("Curriculum title is required.");
   }
 
   return prisma.curriculum.create({
@@ -176,6 +172,7 @@ export async function createCurriculum(
       gradeLevelId: input.gradeLevelId,
       semesterId: input.semesterId,
       published: false,
+
       revisions: {
         create: {
           version: 1,
@@ -187,7 +184,8 @@ export async function createCurriculum(
             gradeLevelId: input.gradeLevelId,
             semesterId: input.semesterId,
           },
-          changeNote: "Initial curriculum creation",
+          changeNote:
+            "Initial curriculum creation",
           createdById: session.user.id,
         },
       },
@@ -249,9 +247,8 @@ export async function updateCurriculum(
     });
 
     await tx.curriculumRevision.create({
-      revisions: {
-        create: {
-          version: 1,
+      data: {
+        version: nextVersion,
         snapshot: {
           title,
           description:
@@ -260,9 +257,11 @@ export async function updateCurriculum(
           gradeLevelId: input.gradeLevelId,
           semesterId: input.semesterId,
         },
-        changeNote: "Initial curriculum creation",
+        changeNote:
+          input.changeNote?.trim() ||
+          `Curriculum updated to version ${nextVersion}`,
         createdById: session.user.id,
-        },
+        curriculumId: updated.id,
       },
     });
 

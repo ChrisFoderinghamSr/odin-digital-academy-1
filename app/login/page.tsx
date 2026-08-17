@@ -3,14 +3,15 @@
 import { FormEvent, useState } from "react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
+  const router = useRouter();
+
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(
-    event: FormEvent<HTMLFormElement>
-  ) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     setError("");
@@ -19,9 +20,7 @@ export default function LoginPage() {
     const formData = new FormData(event.currentTarget);
 
     const email = String(formData.get("email") ?? "");
-    const password = String(
-      formData.get("password") ?? ""
-    );
+    const password = String(formData.get("password") ?? "");
 
     const result = await signIn("credentials", {
       email,
@@ -30,15 +29,12 @@ export default function LoginPage() {
     });
 
     if (result?.error) {
-      setError(
-        "We could not sign you in with those credentials."
-      );
-
+      setError("We could not sign you in with those credentials.");
       setLoading(false);
       return;
     }
 
-    window.location.href = "/norse-one/dashboard";
+    router.push("/norse-one/dashboard");
   }
 
   return (
@@ -54,21 +50,14 @@ export default function LoginPage() {
         </div>
 
         <div className="login-heading">
-          <span className="section-label">
-            NORSE ONE
-          </span>
+          <span className="section-label">NORSE ONE</span>
 
           <h1>Welcome back.</h1>
 
-          <p>
-            Sign in to your Academy workspace.
-          </p>
+          <p>Sign in to your Academy workspace.</p>
         </div>
 
-        <form
-          className="academy-form"
-          onSubmit={handleSubmit}
-        >
+        <form className="academy-form" onSubmit={handleSubmit}>
           <label>
             Email Address
 
@@ -107,13 +96,9 @@ export default function LoginPage() {
         </form>
 
         <div className="login-links">
-          <Link href="/login/forgot-password">
-            Forgot Password?
-          </Link>
+          <Link href="/login/forgot-password">Forgot Password?</Link>
 
-          <Link href="/admissions/apply">
-            Apply for Admission
-          </Link>
+          <Link href="/admissions/apply">Apply for Admission</Link>
         </div>
       </div>
 
@@ -124,9 +109,7 @@ export default function LoginPage() {
 
         <h2>Norse One</h2>
 
-        <p>
-          One academy. One learning journey.
-        </p>
+        <p>One academy. One learning journey.</p>
       </div>
     </main>
   );

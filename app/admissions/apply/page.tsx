@@ -4,12 +4,14 @@ export default function ApplyPage() {
       <section className="page-hero">
         <div className="container page-hero-content">
           <span className="section-label">ADMISSIONS APPLICATION</span>
+
           <h1>
-            Start your family's
+            Start your family&apos;s
             <span> application.</span>
           </h1>
+
           <p>
-            This application will become the foundation of your family's
+            This application will become the foundation of your family&apos;s
             admissions and enrollment record.
           </p>
         </div>
@@ -24,11 +26,12 @@ export default function ApplyPage() {
             <p>Student Information</p>
             <p>Academic History</p>
             <p>Documents</p>
-            <p>Review & Submit</p>
+            <p>Review &amp; Submit</p>
           </aside>
 
           <div className="application-card">
             <span className="section-label">FAMILY INFORMATION</span>
+
             <h2>Create your family account.</h2>
 
             <form className="academy-form">
@@ -58,6 +61,7 @@ export default function ApplyPage() {
 
               <label>
                 Number of Parents / Guardians
+
                 <select name="guardians">
                   <option value="">Select</option>
                   <option value="1">1 Parent / Guardian</option>
@@ -67,6 +71,7 @@ export default function ApplyPage() {
 
               <div className="form-notice">
                 <strong>Application Notice</strong>
+
                 <p>
                   This demonstration form establishes the interface for the
                   future admissions workflow. Production enrollment will use
