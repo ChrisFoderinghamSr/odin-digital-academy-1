@@ -3697,3 +3697,282 @@ body:has(.norse-app) .site-footer {
     grid-template-columns: 1fr;
   }
 }
+
+/* NORSE ONE — ASSIGNMENT DETAIL */
+
+.norse-assignment-detail-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 30px;
+  margin-bottom: 30px;
+}
+
+.norse-back-link {
+  display: inline-block;
+  margin-bottom: 18px;
+  color: #8b6800;
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.norse-back-link:hover {
+  text-decoration: underline;
+}
+
+.norse-assignment-detail-header h1 {
+  margin: 8px 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 2.5rem;
+  line-height: 1.05;
+}
+
+.norse-assignment-detail-header p {
+  max-width: 700px;
+  margin: 0;
+  color: #777;
+  font-size: 0.78rem;
+  line-height: 1.8;
+}
+
+.norse-assignment-detail-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.norse-assignment-detail-status>span {
+  color: #999;
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.norse-assignment-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-bottom: 30px;
+}
+
+.norse-assignment-meta-grid .norse-stat-card strong {
+  font-size: 1.15rem;
+}
+
+.norse-assignment-detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(280px, 0.8fr);
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.norse-assignment-main-panel,
+.norse-assignment-side-panel {
+  border: 1px solid #e4e0d7;
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.norse-assignment-main-panel {
+  min-height: 360px;
+}
+
+.norse-assignment-side-panel {
+  padding: 28px;
+}
+
+.norse-assignment-side-panel>span {
+  color: #a37a00;
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.norse-assignment-side-panel h2 {
+  margin: 8px 0 28px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.5rem;
+}
+
+.norse-assignment-instructions {
+  padding: 0 28px 30px;
+}
+
+.norse-assignment-instructions>p {
+  margin: 0 0 30px;
+  color: #555;
+  font-size: 0.8rem;
+  line-height: 1.9;
+}
+
+.norse-assignment-instruction-block {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 0;
+  border-top: 1px solid #eeece6;
+}
+
+.norse-assignment-instruction-block span {
+  color: #999;
+  font-size: 0.56rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+.norse-assignment-instruction-block strong {
+  color: #333;
+  font-size: 0.72rem;
+  text-align: right;
+}
+
+.norse-assignment-workflow {
+  display: flex;
+  flex-direction: column;
+}
+
+.norse-workflow-step {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 12px;
+  position: relative;
+  padding-bottom: 22px;
+}
+
+.norse-workflow-step:last-child {
+  padding-bottom: 0;
+}
+
+.norse-workflow-step>span {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid #dedbd3;
+  border-radius: 50%;
+  color: #999;
+  font-size: 0.55rem;
+  font-weight: 900;
+}
+
+.norse-workflow-step.active>span {
+  border-color: #d5b83e;
+  background: #fff2a8;
+  color: #806000;
+}
+
+.norse-workflow-step>div {
+  padding-top: 2px;
+}
+
+.norse-workflow-step strong {
+  display: block;
+  color: #444;
+  font-size: 0.68rem;
+}
+
+.norse-workflow-step small {
+  display: block;
+  margin-top: 5px;
+  color: #999;
+  font-size: 0.59rem;
+  line-height: 1.5;
+}
+
+.norse-submission-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+  padding: 30px;
+  border: 1px solid #dfcf8d;
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 90% 50%,
+      rgba(245, 200, 66, 0.18),
+      transparent 30%),
+    #fffbea;
+}
+
+.norse-submission-panel>div {
+  min-width: 0;
+}
+
+.norse-submission-panel>div>span {
+  color: #a37a00;
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.norse-submission-panel h2 {
+  margin: 8px 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.6rem;
+}
+
+.norse-submission-panel p {
+  max-width: 700px;
+  margin: 0;
+  color: #777;
+  font-size: 0.7rem;
+  line-height: 1.7;
+}
+
+.norse-submission-panel .button {
+  flex-shrink: 0;
+}
+
+.norse-submission-panel button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+  .norse-assignment-detail-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .norse-assignment-detail-status {
+    align-items: flex-start;
+  }
+
+  .norse-assignment-meta-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .norse-assignment-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .norse-submission-panel {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 600px) {
+  .norse-assignment-detail-header h1 {
+    font-size: 2rem;
+  }
+
+  .norse-assignment-side-panel,
+  .norse-assignment-instructions,
+  .norse-submission-panel {
+    padding: 22px;
+  }
+
+  .norse-assignment-instruction-block {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .norse-assignment-instruction-block strong {
+    text-align: left;
+  }
+}

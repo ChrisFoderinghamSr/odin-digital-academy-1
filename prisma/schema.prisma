@@ -376,15 +376,25 @@ model Submission {
   assignmentId String
   studentId    String
   status       SubmissionStatus @default(NOT_STARTED)
-  submittedAt  DateTime?
-  gradedAt     DateTime?
-  score        Int?
-  feedback     String?
+
+  responseText String?          @db.Text
+
+  submittedAt DateTime?
+  gradedAt    DateTime?
+  score       Int?
+  feedback    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   assignment Assignment     @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
   student    StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   grade GradeRecord?
+
+  @@unique([assignmentId, studentId])
+  @@index([studentId])
+  @@index([assignmentId])
 }
 
 model GradeRecord {

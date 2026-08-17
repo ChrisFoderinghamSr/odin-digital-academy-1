@@ -41,7 +41,8 @@ export function getStudentCourses(
 
   return mockCourses.filter(
     (course) =>
-      course.academicLevel === student.academicLevel &&
+      course.academicLevel ===
+        student.academicLevel &&
       course.active
   );
 }
@@ -55,11 +56,23 @@ export function getStudentAssignments(
   );
 }
 
+export function getStudentAssignmentById(
+  studentId: string,
+  assignmentId: string
+): Assignment | undefined {
+  return mockAssignments.find(
+    (assignment) =>
+      assignment.id === assignmentId &&
+      assignment.studentId === studentId
+  );
+}
+
 export function getStudentGrades(
   studentId: string
 ): GradeRecord[] {
   return mockGrades.filter(
-    (grade) => grade.studentId === studentId
+    (grade) =>
+      grade.studentId === studentId
   );
 }
 
@@ -67,6 +80,7 @@ export function getStudentAttendance(
   studentId: string
 ): AttendanceRecord[] {
   return mockAttendance.filter(
-    (record) => record.studentId === studentId
+    (record) =>
+      record.studentId === studentId
   );
 }

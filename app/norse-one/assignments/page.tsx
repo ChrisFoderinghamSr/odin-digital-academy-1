@@ -1,13 +1,23 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
+
 import NorseOneShell from "@/components/layout/norse-one/NorseOneShell";
 
-import { mockAssignments } from "@/lib/data/mock/assignments";
-import { mockStudents } from "@/lib/data/mock/students";
-import type { AssignmentStatus, NorseOneRole } from "@/types/norse-one";
+import {
+  getStudentAssignments,
+  getStudentByUserId,
+} from "@/lib/services/norse-one/student-service";
 
-function formatStatus(status: AssignmentStatus) {
+import type {
+  AssignmentStatus,
+  NorseOneRole,
+} from "@/types/norse-one";
+
+function formatStatus(
+  status: AssignmentStatus
+): string {
   return status
     .replace(/_/g, " ")
     .toLowerCase()
@@ -16,14 +26,21 @@ function formatStatus(status: AssignmentStatus) {
     );
 }
 
-function getStatusClass(status: AssignmentStatus) {
+function getStatusClass(
+  status: AssignmentStatus
+): string {
   return `assignment-status ${status
     .toLowerCase()
     .replace(/_/g, "-")}`;
 }
 
-function formatDueDate(date: string) {
-  const dueDate = new Date(`${date}T12:00:00`);
+function formatDueDate(
+  date: string
+): string {
+  const dueDate = new Date(
+    `${date}T12:00:00`
+  );
+
   const today = new Date();
 
   const todayStart = new Date(
@@ -38,11 +55,11 @@ function formatDueDate(date: string) {
     dueDate.getDate()
   );
 
-  const difference =
-    Math.round(
-      (dueStart.getTime() - todayStart.getTime()) /
-        (1000 * 60 * 60 * 24)
-    );
+  const difference = Math.round(
+    (dueStart.getTime() -
+      todayStart.getTime()) /
+      (1000 * 60 * 60 * 24)
+  );
 
   if (difference < 0) {
     return "Past Due";
@@ -56,10 +73,13 @@ function formatDueDate(date: string) {
     return "Tomorrow";
   }
 
-  return dueDate.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
+  return dueDate.toLocaleDateString(
+    "en-US",
+    {
+      month: "short",
+      day: "numeric",
+    }
+  );
 }
 
 export default async function AssignmentsPage() {
@@ -69,39 +89,63 @@ export default async function AssignmentsPage() {
     redirect("/login");
   }
 
-  const role = session.user.role as NorseOneRole;
+  const role =
+    session.user.role as NorseOneRole;
+
+  if (role !== "STUDENT") {
+    redirect("/norse-one/dashboard");
+  }
 
   const student =
-    mockStudents.find(
-      (candidate) =>
-        candidate.userId === session.user.id
-    ) ?? mockStudents[0];
+    getStudentByUserId(
+      session.user.id
+    );
 
-  const studentAssignments = mockAssignments.filter(
-    (assignment) =>
-      assignment.studentId === student?.id
-  );
+  if (!student) {
+    return (
+      <NorseOneShell role={role}>
+        <section className="norse-page-heading">
+          <span>STUDENT RECORD</span>
 
-  const assignments = studentAssignments.length
-    ? studentAssignments
-    : mockAssignments;
+          <h1>
+            Assignment record unavailable.
+          </h1>
 
-  const submitted = assignments.filter(
-    (assignment) =>
-      assignment.status === "SUBMITTED" ||
-      assignment.status === "GRADED" ||
-      assignment.status === "RETURNED"
-  ).length;
+          <p>
+            Your authenticated account is not
+            currently connected to a student
+            academic record.
+          </p>
+        </section>
+      </NorseOneShell>
+    );
+  }
 
-  const inProgress = assignments.filter(
-    (assignment) =>
-      assignment.status === "IN_PROGRESS"
-  ).length;
+  const assignments =
+    getStudentAssignments(student.id);
 
-  const notStarted = assignments.filter(
-    (assignment) =>
-      assignment.status === "NOT_STARTED"
-  ).length;
+  const submitted =
+    assignments.filter(
+      (assignment) =>
+        assignment.status ===
+          "SUBMITTED" ||
+        assignment.status === "GRADED" ||
+        assignment.status === "RETURNED"
+    ).length;
+
+  const inProgress =
+    assignments.filter(
+      (assignment) =>
+        assignment.status ===
+        "IN_PROGRESS"
+    ).length;
+
+  const notStarted =
+    assignments.filter(
+      (assignment) =>
+        assignment.status ===
+        "NOT_STARTED"
+    ).length;
 
   return (
     <NorseOneShell role={role}>
@@ -111,96 +155,154 @@ export default async function AssignmentsPage() {
         <h1>Assignments</h1>
 
         <p>
-          Review, complete, submit, and track your
-          coursework.
+          Review, complete, submit, and track
+          your coursework.
         </p>
       </section>
 
       <section className="norse-stat-grid">
         <article className="norse-stat-card">
           <span>TOTAL</span>
-          <strong>{assignments.length}</strong>
-          <small>Current assignments</small>
+
+          <strong>
+            {assignments.length}
+          </strong>
+
+          <small>
+            Current assignments
+          </small>
         </article>
 
         <article className="norse-stat-card">
           <span>IN PROGRESS</span>
-          <strong>{inProgress}</strong>
-          <small>Work currently underway</small>
+
+          <strong>
+            {inProgress}
+          </strong>
+
+          <small>
+            Work currently underway
+          </small>
         </article>
 
         <article className="norse-stat-card">
           <span>SUBMITTED</span>
-          <strong>{submitted}</strong>
-          <small>Completed submissions</small>
+
+          <strong>
+            {submitted}
+          </strong>
+
+          <small>
+            Completed submissions
+          </small>
         </article>
 
         <article className="norse-stat-card">
           <span>NOT STARTED</span>
-          <strong>{notStarted}</strong>
-          <small>Awaiting student action</small>
+
+          <strong>
+            {notStarted}
+          </strong>
+
+          <small>
+            Awaiting student action
+          </small>
         </article>
       </section>
 
       <section className="norse-table-panel">
         <div className="norse-table-header">
           <div>
-            <strong>Current Assignments</strong>
+            <strong>
+              Current Assignments
+            </strong>
+
             <span>
-              {student
-                ? `${student.firstName} ${student.lastName}`
-                : "Student Workspace"}
+              {student.firstName}{" "}
+              {student.lastName}
             </span>
           </div>
 
-          <span>{assignments.length} items</span>
+          <span>
+            {assignments.length} items
+          </span>
         </div>
 
-        {assignments.map((assignment) => (
-          <article
-            className="norse-table-row"
-            key={assignment.id}
-          >
-            <div>
-              <span>{assignment.courseName}</span>
+        {assignments.length === 0 && (
+          <div className="norse-empty-state">
+            <span>ACADEMIC WORK</span>
 
-              <strong>{assignment.title}</strong>
+            <h2>
+              No assignments available.
+            </h2>
 
-              <small>
-                {assignment.description}
-              </small>
-            </div>
+            <p>
+              Your current coursework does not
+              contain any assignments yet.
+            </p>
+          </div>
+        )}
 
-            <div>
-              <span>DUE</span>
-              <strong>
-                {formatDueDate(
-                  assignment.dueDate
-                )}
-              </strong>
-            </div>
-
-            <div>
-              <span>POINTS</span>
-              <strong>
-                {assignment.pointsEarned !==
-                undefined
-                  ? `${assignment.pointsEarned}/${assignment.pointsPossible}`
-                  : assignment.pointsPossible}
-              </strong>
-            </div>
-
-            <b
-              className={getStatusClass(
-                assignment.status
-              )}
+        {assignments.map(
+          (assignment) => (
+            <article
+              className="norse-table-row"
+              key={assignment.id}
             >
-              {formatStatus(
-                assignment.status
-              )}
-            </b>
-          </article>
-        ))}
+              <div>
+                <span>
+                  {assignment.courseName}
+                </span>
+
+                <strong>
+                  {assignment.title}
+                </strong>
+
+                <small>
+                  {assignment.description}
+                </small>
+              </div>
+
+              <div>
+                <span>DUE</span>
+
+                <strong>
+                  {formatDueDate(
+                    assignment.dueDate
+                  )}
+                </strong>
+              </div>
+
+              <div>
+                <span>POINTS</span>
+
+                <strong>
+                  {assignment.pointsEarned !==
+                  undefined
+                    ? `${assignment.pointsEarned}/${assignment.pointsPossible}`
+                    : assignment.pointsPossible}
+                </strong>
+              </div>
+
+              <b
+                className={getStatusClass(
+                  assignment.status
+                )}
+              >
+                {formatStatus(
+                  assignment.status
+                )}
+              </b>
+
+              <Link
+                href={`/norse-one/assignments/${assignment.id}`}
+                className="norse-assignment-link"
+              >
+                View
+              </Link>
+            </article>
+          )
+        )}
       </section>
     </NorseOneShell>
   );
