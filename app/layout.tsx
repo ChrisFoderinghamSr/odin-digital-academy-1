@@ -77,8 +77,7 @@ export default function RootLayout({
           </div>
 
           <div className="container footer-bottom">
-            <span>© 2026 Odin Digital Academy</span>
-            <span>NORSE ONE • Integrated LMS</span>
+            <span>© 2026 Odin Digital Academy • NORSE ONE • Learning & Academy Portal</span>
           </div>
         </footer>
       </body>

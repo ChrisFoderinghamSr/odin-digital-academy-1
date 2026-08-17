@@ -3590,3 +3590,110 @@ a {
     flex-direction: column;
   }
 }
+
+/* 
+NORSE ONE — PORTAL SHELL ISOLATION - The public website header/footer must not appear inside the authenticated NORSE ONE learning portal.
+*/
+
+body:has(.norse-app) .site-header,
+body:has(.norse-app) .site-footer {
+  display: none;
+}
+
+/* NORSE ONE Authenticated Resources */
+
+.norse-resource-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 28px;
+}
+
+.norse-resource-card {
+  min-height: 220px;
+  padding: 28px;
+  background: #ffffff;
+  border: 1px solid #e5e0d5;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.norse-resource-number {
+  display: block;
+  margin-bottom: 28px;
+  color: #b8860b;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.norse-resource-card h2 {
+  margin: 0 0 12px;
+  color: #111111;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 28px;
+  line-height: 1.1;
+}
+
+.norse-resource-card p {
+  margin: 0;
+  color: #6d6a63;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.norse-resource-action {
+  align-self: flex-start;
+  margin-top: 24px;
+  padding: 9px 14px;
+  border: 1px solid #ded8ca;
+  border-radius: 999px;
+  background: #f5f2ea;
+  color: #77736b;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: not-allowed;
+}
+
+.norse-resource-note {
+  margin-top: 28px;
+  padding: 28px;
+  border-radius: 16px;
+  background: #f8f0d5;
+  border: 1px solid #ead9a2;
+}
+
+.norse-resource-note>span {
+  display: block;
+  margin-bottom: 10px;
+  color: #a47700;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.norse-resource-note h2 {
+  margin: 0 0 10px;
+  color: #111111;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 28px;
+  line-height: 1.15;
+}
+
+.norse-resource-note p {
+  max-width: 760px;
+  margin: 0;
+  color: #5f5b53;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+@media (max-width: 800px) {
+  .norse-resource-grid {
+    grid-template-columns: 1fr;
+  }
+}
