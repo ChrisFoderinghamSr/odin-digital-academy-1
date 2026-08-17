@@ -3,13 +3,21 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
+
 import type { NorseOneRole } from "@/types/norse-one";
 
 interface NorseOneSidebarProps {
   role: NorseOneRole;
 }
 
-const navigation = [
+interface NavigationItem {
+  label: string;
+  href: string;
+  icon: string;
+  roles: NorseOneRole[];
+}
+
+const navigation: NavigationItem[] = [
   {
     label: "Dashboard",
     href: "/norse-one/dashboard",
@@ -25,24 +33,45 @@ const navigation = [
       "STUDENT",
     ],
   },
+
   {
     label: "My Learning",
     href: "/norse-one/learning",
     icon: "◇",
-    roles: ["STUDENT", "PARENT", "TEACHER", "ASSISTANT"],
+    roles: [
+      "STUDENT",
+      "PARENT",
+      "TEACHER",
+      "ASSISTANT",
+    ],
   },
+
   {
     label: "Assignments",
     href: "/norse-one/assignments",
     icon: "✓",
-    roles: ["STUDENT", "PARENT", "TEACHER", "ASSISTANT"],
+    roles: [
+      "STUDENT",
+      "PARENT",
+      "TEACHER",
+      "ASSISTANT",
+    ],
   },
+
   {
     label: "Grades",
     href: "/norse-one/grades",
     icon: "A",
-    roles: ["STUDENT", "PARENT", "TEACHER", "DIRECTOR"],
+    roles: [
+      "STUDENT",
+      "PARENT",
+      "TEACHER",
+      "ASSISTANT",
+      "DIRECTOR",
+      "ADMINISTRATOR",
+    ],
   },
+
   {
     label: "Curriculum",
     href: "/norse-one/curriculum",
@@ -56,6 +85,7 @@ const navigation = [
       "STUDENT",
     ],
   },
+
   {
     label: "Attendance",
     href: "/norse-one/attendance",
@@ -69,6 +99,7 @@ const navigation = [
       "STUDENT",
     ],
   },
+
   {
     label: "Messages",
     href: "/norse-one/messages",
@@ -76,6 +107,7 @@ const navigation = [
     roles: [
       "ADMINISTRATOR",
       "DIRECTOR",
+      "DEVELOPER",
       "TEACHER",
       "ASSISTANT",
       "SUPPORT",
@@ -83,48 +115,95 @@ const navigation = [
       "STUDENT",
     ],
   },
+
   {
     label: "Family",
     href: "/norse-one/family",
     icon: "♧",
-    roles: ["PARENT", "STUDENT"],
+    roles: [
+      "PARENT",
+      "STUDENT",
+    ],
   },
+
   {
     label: "Admissions",
     href: "/norse-one/admissions",
     icon: "◇",
-    roles: ["ADMINISTRATOR", "DIRECTOR", "SUPPORT", "PARENT"],
+    roles: [
+      "ADMINISTRATOR",
+      "DIRECTOR",
+      "SUPPORT",
+      "PARENT",
+    ],
   },
+
   {
     label: "Enrollment",
     href: "/norse-one/enrollment",
     icon: "▣",
-    roles: ["ADMINISTRATOR", "DIRECTOR", "SUPPORT", "PARENT"],
+    roles: [
+      "ADMINISTRATOR",
+      "DIRECTOR",
+      "SUPPORT",
+      "PARENT",
+    ],
   },
+
   {
-  label: "Curriculum Manager",
-  href: "/norse-one/administration/curriculum",
-  icon: "▤",
-  roles: [
-    "ADMINISTRATOR",
-    "DIRECTOR",
+    label: "Resources",
+    href: "/norse-one/resources",
+    icon: "▧",
+    roles: [
+      "ADMINISTRATOR",
+      "DIRECTOR",
+      "DEVELOPER",
+      "TEACHER",
+      "ASSISTANT",
+      "SUPPORT",
+      "PARENT",
+      "STUDENT",
+    ],
+  },
+
+  {
+    label: "Curriculum Manager",
+    href: "/norse-one/administration/curriculum",
+    icon: "▤",
+    roles: [
+      "ADMINISTRATOR",
+      "DIRECTOR",
     ],
   },
 ];
+
+function formatRole(role: NorseOneRole): string {
+  return role
+    .toLowerCase()
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (character) =>
+      character.toUpperCase()
+    );
+}
 
 export default function NorseOneSidebar({
   role,
 }: NorseOneSidebarProps) {
   const pathname = usePathname();
 
-  const visibleNavigation = navigation.filter((item) =>
-    item.roles.includes(role)
+  const visibleNavigation = navigation.filter(
+    (item) => item.roles.includes(role)
   );
 
   return (
     <aside className="norse-sidebar">
       <div className="norse-sidebar-brand">
-        <div className="norse-sidebar-logo">N</div>
+        <div
+          className="norse-sidebar-logo"
+          aria-hidden="true"
+        >
+          N
+        </div>
 
         <div>
           <strong>NORSE ONE</strong>
@@ -134,23 +213,38 @@ export default function NorseOneSidebar({
 
       <div className="norse-sidebar-role">
         <span>ACTIVE ROLE</span>
-        <strong>{role}</strong>
+
+        <strong>{formatRole(role)}</strong>
       </div>
 
-      <nav className="norse-sidebar-navigation">
+      <nav
+        className="norse-sidebar-navigation"
+        aria-label="Norse One navigation"
+      >
         {visibleNavigation.map((item) => {
           const active =
             pathname === item.href ||
             (item.href !== "/norse-one/dashboard" &&
-              pathname.startsWith(item.href));
+              pathname.startsWith(`${item.href}/`));
 
           return (
             <Link
               href={item.href}
-              className={`norse-nav-item ${active ? "active" : ""}`}
+              className={`norse-nav-item ${
+                active ? "active" : ""
+              }`}
               key={item.href}
+              aria-current={
+                active ? "page" : undefined
+              }
             >
-              <span className="norse-nav-icon">{item.icon}</span>
+              <span
+                className="norse-nav-icon"
+                aria-hidden="true"
+              >
+                {item.icon}
+              </span>
+
               <span>{item.label}</span>
             </Link>
           );
@@ -158,12 +252,22 @@ export default function NorseOneSidebar({
       </nav>
 
       <div className="norse-sidebar-bottom">
-        <Link href="/">Academy Website</Link>
-        
+        <Link href="/">
+          Academy Website
+        </Link>
+
+        <Link href="/norse-one/resources">
+          Learning Resources
+        </Link>
+
         <button
           type="button"
           className="norse-signout-button"
-          onClick={() => signOut({ callbackUrl: "/login" })}
+          onClick={() =>
+            signOut({
+              callbackUrl: "/login",
+            })
+          }
         >
           Sign Out
         </button>

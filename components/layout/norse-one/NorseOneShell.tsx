@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { redirect } from "next/navigation";
 
 import NorseOneSidebar from "@/components/navigation/norse-one/NorseOneSidebar";
 import { auth } from "@/auth";
@@ -20,13 +21,26 @@ const validRoles: NorseOneRole[] = [
   "STUDENT",
 ];
 
+function formatRole(role: NorseOneRole): string {
+  return role
+    .toLowerCase()
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (character) =>
+      character.toUpperCase()
+    );
+}
+
 export default async function NorseOneShell({
   children,
-  role: fallbackRole = "STUDENT",
+  role: fallbackRole,
 }: NorseOneShellProps) {
   const session = await auth();
 
-  const sessionRole = session?.user?.role;
+  if (!session?.user) {
+    redirect("/login");
+  }
+
+  const sessionRole = session.user.role;
 
   const role = validRoles.includes(
     sessionRole as NorseOneRole
@@ -34,8 +48,24 @@ export default async function NorseOneShell({
     ? (sessionRole as NorseOneRole)
     : fallbackRole;
 
-  const firstName =
-    session?.user?.name?.split(" ")[0] ?? "Raven";
+  if (!role) {
+    redirect("/login");
+  }
+
+  const displayRole = formatRole(role);
+
+  const fullName =
+    session.user.name?.trim() || "Raven User";
+
+  const nameParts = fullName.split(/\s+/);
+
+  const firstName = nameParts[0] ?? "Raven";
+  const lastNameInitial =
+    nameParts.length > 1
+      ? nameParts[nameParts.length - 1]?.charAt(0)
+      : "";
+
+  const initials = `${firstName.charAt(0)}${lastNameInitial}`.toUpperCase();
 
   return (
     <div className="norse-app">
@@ -43,13 +73,13 @@ export default async function NorseOneShell({
 
       <div className="norse-main">
         <header className="norse-topbar">
-          <div>
+          <div className="norse-topbar-brand">
             <span className="norse-topbar-label">
               NORSE ONE
             </span>
 
             <strong>
-              Learning & Academy Portal
+              Learning &amp; Academy Portal
             </strong>
           </div>
 
@@ -58,23 +88,22 @@ export default async function NorseOneShell({
               className="norse-notification"
               aria-label="Notifications"
               type="button"
+              title="Notifications"
             >
               ♢
             </button>
 
-            <div className="norse-user-avatar">
-              {firstName.charAt(0)}
-              {session?.user?.name
-                ?.split(" ")[1]
-                ?.charAt(0) ?? ""}
+            <div
+              className="norse-user-avatar"
+              aria-hidden="true"
+            >
+              {initials}
             </div>
 
             <div className="norse-user-info">
-              <strong>
-                {session?.user?.name ?? "Raven User"}
-              </strong>
+              <strong>{fullName}</strong>
 
-              <span>{role}</span>
+              <span>{displayRole}</span>
             </div>
           </div>
         </header>
@@ -82,6 +111,14 @@ export default async function NorseOneShell({
         <main className="norse-content">
           {children}
         </main>
+
+        <footer className="norse-footer">
+          <span>
+            © {new Date().getFullYear()} Odin Digital Academy
+          </span>
+
+          <span>NORSE ONE • Learning &amp; Academy Portal</span>
+        </footer>
       </div>
     </div>
   );

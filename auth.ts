@@ -12,10 +12,6 @@ const credentialsSchema = z.object({
   password: z.string().min(1),
 });
 
-const demoPasswordHash =
-  process.env.NORSE_DEMO_PASSWORD_HASH ??
-  "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy";
-
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
 
@@ -36,7 +32,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
 
       async authorize(credentials) {
-        const parsed = credentialsSchema.safeParse(credentials);
+        const parsed =
+          credentialsSchema.safeParse(credentials);
 
         if (!parsed.success) {
           return null;
@@ -46,7 +43,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const user = mockUsers.find(
           (candidate) =>
-            candidate.email.toLowerCase() === email.toLowerCase() &&
+            candidate.email.toLowerCase() ===
+              email.toLowerCase() &&
             candidate.active
         );
 
@@ -54,10 +52,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null;
         }
 
-        const passwordValid = await bcrypt.compare(
-          password,
-          demoPasswordHash
-        );
+        const passwordHash =
+          process.env.NORSE_DEMO_PASSWORD_HASH;
+
+        if (!passwordHash) {
+          console.error(
+            "NORSE_DEMO_PASSWORD_HASH is not configured."
+          );
+
+          return null;
+        }
+
+        const passwordValid =
+          await bcrypt.compare(
+            password,
+            passwordHash
+          );
 
         if (!passwordValid) {
           return null;
@@ -67,7 +77,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           id: user.id,
           name: `${user.firstName} ${user.lastName}`,
           email: user.email,
-          role: user.role,
+          role: user.role as NorseOneRole,
         };
       },
     }),
@@ -77,7 +87,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.role = user.role as NorseOneRole;
+        token.role =
+          user.role as NorseOneRole;
       }
 
       return token;
@@ -85,9 +96,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id ?? "";
+        session.user.id =
+          typeof token.id === "string"
+            ? token.id
+            : "";
+
         session.user.role =
-          (token.role as NorseOneRole) ?? "STUDENT";
+          (token.role as NorseOneRole) ??
+          "STUDENT";
       }
 
       return session;
