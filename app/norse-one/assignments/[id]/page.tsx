@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 
 import NorseOneShell from "@/components/layout/norse-one/NorseOneShell";
+import SubmissionWorkspace from "@/components/norse-one/assignments/SubmissionWorkspace";
 
 import {
   getStudentAssignmentById,
@@ -274,11 +275,7 @@ export default async function AssignmentDetailPage({
           </h2>
 
           <div className="norse-assignment-workflow">
-            <div
-              className={
-                "norse-workflow-step active"
-              }
-            >
+            <div className="norse-workflow-step active">
               <span>01</span>
 
               <div>
@@ -294,13 +291,11 @@ export default async function AssignmentDetailPage({
             </div>
 
             <div
-              className={
-                `norse-workflow-step ${
-                  isSubmitted
-                    ? "active"
-                    : ""
-                }`
-              }
+              className={`norse-workflow-step ${
+                isSubmitted
+                  ? "active"
+                  : ""
+              }`}
             >
               <span>02</span>
 
@@ -317,13 +312,11 @@ export default async function AssignmentDetailPage({
             </div>
 
             <div
-              className={
-                `norse-workflow-step ${
-                  isGraded
-                    ? "active"
-                    : ""
-                }`
-              }
+              className={`norse-workflow-step ${
+                isGraded
+                  ? "active"
+                  : ""
+              }`}
             >
               <span>03</span>
 
@@ -340,13 +333,11 @@ export default async function AssignmentDetailPage({
             </div>
 
             <div
-              className={
-                `norse-workflow-step ${
-                  isGraded
-                    ? "active"
-                    : ""
-                }`
-              }
+              className={`norse-workflow-step ${
+                isGraded
+                  ? "active"
+                  : ""
+              }`}
             >
               <span>04</span>
 
@@ -365,44 +356,34 @@ export default async function AssignmentDetailPage({
         </aside>
       </section>
 
-      <section className="norse-submission-panel">
-        <div>
-          <span>SUBMISSION</span>
+      <SubmissionWorkspace
+        assignmentId={assignment.id}
+        initialStatus={assignment.status}
+      />
 
-          <h2>
-            {isSubmitted
-              ? "Your work has been submitted."
-              : "Ready to submit your work?"}
-          </h2>
+      {isSubmitted && isGraded && (
+        <section className="norse-submission-panel">
+          <div>
+            <span>ACADEMIC RESULT</span>
 
-          <p>
-            {isSubmitted
-              ? `Your submission was recorded on ${formatSubmissionDate(
-                  assignment.submittedAt
-                )}.`
-              : "The submission workspace will allow you to enter your work and submit it directly through NORSE ONE."}
-          </p>
-        </div>
+            <h2>
+              Your assignment has been graded.
+            </h2>
 
-        {!isSubmitted && (
-          <button
-            type="button"
-            className="button button-gold"
-            disabled
-          >
-            Submission Workspace Coming Soon
-          </button>
-        )}
+            <p>
+              Review your grade and instructor
+              feedback in the grades section.
+            </p>
+          </div>
 
-        {isSubmitted && isGraded && (
           <Link
             href="/norse-one/grades"
             className="button button-gold"
           >
             View Grades
           </Link>
-        )}
-      </section>
+        </section>
+      )}
     </NorseOneShell>
   );
 }

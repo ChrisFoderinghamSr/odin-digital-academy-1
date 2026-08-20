@@ -377,7 +377,7 @@ model Submission {
   studentId    String
   status       SubmissionStatus @default(NOT_STARTED)
 
-  responseText String?          @db.Text
+  responseText String? @db.Text
 
   submittedAt DateTime?
   gradedAt    DateTime?
