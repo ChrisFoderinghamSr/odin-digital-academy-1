@@ -1,80 +1,17 @@
+// File introduced 2026-08-17 (fe05ed4).
+import { requireAuthentication } from "@/lib/auth/authorization";
+import { prisma } from "@/lib/database/prisma";
 import NorseOneShell from "@/components/layout/norse-one/NorseOneShell";
 
-const resources = [
-  {
-    number: "01",
-    title: "Course Resources",
-    description:
-      "Learning materials, references, and supporting resources connected to your active courses.",
-  },
-  {
-    number: "02",
-    title: "Learning Resources",
-    description:
-      "Supplemental materials designed to support independent learning, practice, and academic growth.",
-  },
-  {
-    number: "03",
-    title: "Technology Support",
-    description:
-      "Technology guides, device resources, and support information for the Academy learning environment.",
-  },
-  {
-    number: "04",
-    title: "Academy Resources",
-    description:
-      "Important Academy information, policies, guides, and resources available to your account.",
-  },
-];
-
-export default function NorseOneResourcesPage() {
-  return (
-    <NorseOneShell>
-      <section className="norse-page-heading">
-        <span>RESOURCES</span>
-
-        <h1>Learning resources.</h1>
-
-        <p>
-          Everything you need to support your learning journey inside
-          NORSE ONE.
-        </p>
-      </section>
-
-      <section className="norse-resource-grid">
-        {resources.map((resource) => (
-          <article
-            className="norse-resource-card"
-            key={resource.number}
-          >
-            <span className="norse-resource-number">
-              {resource.number}
-            </span>
-
-            <h2>{resource.title}</h2>
-
-            <p>{resource.description}</p>
-
-            <button
-              type="button"
-              className="norse-resource-action"
-              disabled
-            >
-              Coming Soon
-            </button>
-          </article>
-        ))}
-      </section>
-
-      <section className="norse-resource-note">
-        <span>ACADEMIC SUPPORT</span>
-
-        <h2>More resources are being connected.</h2>
-
-        <p>
-          NORSE ONE will eventually connect course materials, lessons, assignments, technology support, academic documents, and other learning resources directly to your account.
-        </p>
-      </section>
-    </NorseOneShell>
-  );
+export default async function ResourcesPage() {
+  const { user } = await requireAuthentication();
+  // A resource may belong to a unit or one of its lessons. Both paths must lead to an enrolled course.
+  const curriculum = { published: true, course: { classrooms: { some: { active: true, students: { some: { student: { userId: user.id } } } } } } };
+  const resources = await prisma.resource.findMany({ where: { type: { notIn: ["INSTRUCTOR_RESOURCE", "PARENT_RESOURCE"] },
+    OR: [{ unit: { curriculum } }, { lesson: { unit: { curriculum } } }] }, orderBy: { title: "asc" } });
+  return <NorseOneShell role={user.role}><section className="norse-page-heading"><h1>Learning resources</h1></section>
+    <section className="norse-resource-grid">{!resources.length && <p>Your courses have no published materials yet.</p>}
+      {resources.map(r => <article key={r.id} className="norse-resource-card"><span>{r.type}</span><h2>{r.title}</h2><p>{r.description}</p>
+        {r.url && /^https?:\/\//i.test(r.url) && <a href={r.url}>Open resource</a>}</article>)}
+    </section></NorseOneShell>;
 }

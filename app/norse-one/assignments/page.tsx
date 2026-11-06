@@ -1,3 +1,4 @@
+// File introduced 2026-08-17 (fe05ed4).
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -37,6 +38,7 @@ function getStatusClass(
 function formatDueDate(
   date: string
 ): string {
+  if (!date) return "No deadline";
   const dueDate = new Date(
     `${date}T12:00:00`
   );
@@ -97,7 +99,7 @@ export default async function AssignmentsPage() {
   }
 
   const student =
-    getStudentByUserId(
+    await getStudentByUserId(
       session.user.id
     );
 
@@ -122,7 +124,7 @@ export default async function AssignmentsPage() {
   }
 
   const assignments =
-    getStudentAssignments(student.id);
+    await getStudentAssignments(student.id);
 
   const submitted =
     assignments.filter(

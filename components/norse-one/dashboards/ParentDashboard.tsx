@@ -1,130 +1,18 @@
+// File introduced 2026-08-17 (fe05ed4).
 import Link from "next/link";
+import { getMyFamily } from "@/lib/services/norse-one/family-service";
 
-import {
-  getFamilyParents,
-  getFamilyStudents,
-} from "@/lib/services/norse-one/family-service";
 
-const FAMILY_ID = "family-001";
-
-export default function ParentDashboard() {
-  const students = getFamilyStudents(FAMILY_ID);
-  const parents = getFamilyParents(FAMILY_ID);
-
-  const student = students[0];
-  const primaryParent = parents.find(
-    ({ guardian }) => guardian.primary
-  );
-
+export default async function FamilyView() {
+  const family = await getMyFamily();
+  const records = family?.students.map(s => ({id:s.id,title:s.firstName+" "+s.lastName,detail:s.academicLevel})) ?? [];
   return (
     <>
-      <section className="norse-dashboard-header">
-        <div>
-          <span className="norse-eyebrow">
-            FAMILY WORKSPACE
-          </span>
-
-          <h1>
-            Welcome,
-            <span>
-              {" "}
-              {primaryParent?.user?.firstName ??
-                "Parent"}
-              .
-            </span>
-          </h1>
-
-          <p>
-            Monitor your student&apos;s academic journey,
-            assignments, attendance, and school communications.
-          </p>
-        </div>
-
-        <div className="norse-academic-badge">
-          <span>FAMILY ACCOUNT</span>
-          <strong>Active</strong>
-          <small>
-            {students.length} enrolled student
-          </small>
-        </div>
-      </section>
-
-      <section className="family-profile-grid">
-        {students.map((familyStudent) => (
-          <article
-            className="family-profile-card student-profile"
-            key={familyStudent.id}
-          >
-            <span>STUDENT</span>
-
-            <h2>
-              {familyStudent.firstName}{" "}
-              {familyStudent.lastName}
-            </h2>
-
-            <p>
-              Grade 5 • Preparatory Academy
-            </p>
-
-            <strong>
-              Enrollment:{" "}
-              {familyStudent.enrollmentStatus}
-            </strong>
-          </article>
-        ))}
-      </section>
-
-      <section className="norse-stat-grid family-dashboard-stats">
-        <article className="norse-stat-card">
-          <span>ACADEMIC GPA</span>
-          <strong>
-            {student?.currentGpa ?? "N/A"}
-          </strong>
-          <small>Current standing</small>
-        </article>
-
-        <article className="norse-stat-card">
-          <span>ATTENDANCE</span>
-          <strong>
-            {student?.attendanceRate ?? 0}%
-          </strong>
-          <small>Current attendance</small>
-        </article>
-
-        <article className="norse-stat-card">
-          <span>MESSAGES</span>
-          <strong>2</strong>
-          <small>Unread communications</small>
-        </article>
-
-        <article className="norse-stat-card">
-          <span>DOCUMENTS</span>
-          <strong>7</strong>
-          <small>Family records</small>
-        </article>
-      </section>
-
-      <section className="norse-dashboard-banner">
-        <div>
-          <span>FAMILY SERVICES</span>
-
-          <h2>
-            Stay connected to your child&apos;s
-            education.
-          </h2>
-
-          <p>
-            Review learning progress, enrollment,
-            assignments, and Academy communication.
-          </p>
-        </div>
-
-        <Link
-          href="/norse-one/family"
-          className="button button-gold"
-        >
-          Family Workspace
-        </Link>
+      <section className="norse-page-heading"><span>Family workspace</span><h1>Family dashboard</h1><p>{family?.familyName}</p></section>
+      <section className="enrollment-panel">
+        {records.map(row => <article key={row.id}><strong>{row.title}</strong><p>{row.detail}</p></article>)}
+        {!records.length && <p>No records are available for this household yet.</p>}
+        <Link href="/norse-one/family">View family</Link>
       </section>
     </>
   );

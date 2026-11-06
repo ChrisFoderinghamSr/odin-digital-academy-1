@@ -1,3 +1,4 @@
+// File introduced 2026-08-17 (fe05ed4).
 import Link from "next/link";
 
 import {
@@ -28,10 +29,10 @@ function formatAcademicLevel(
   return labels[academicLevel] ?? academicLevel;
 }
 
-export default function StudentDashboard({
+export default async function StudentDashboard({
   userId,
 }: StudentDashboardProps) {
-  const student = getStudentByUserId(userId);
+  const student = await getStudentByUserId(userId);
 
   if (!student) {
     return (
@@ -48,10 +49,10 @@ export default function StudentDashboard({
     );
   }
 
-  const courses = getStudentCourses(student.id);
+  const courses = await getStudentCourses(student.id);
 
   const assignments =
-    getStudentAssignments(student.id);
+    await getStudentAssignments(student.id);
 
   const academicLevel = formatAcademicLevel(
     student.academicLevel

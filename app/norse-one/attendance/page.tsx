@@ -1,10 +1,10 @@
+// File introduced 2026-08-17 (fe05ed4).
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
 import NorseOneShell from "@/components/layout/norse-one/NorseOneShell";
 
-import { mockAttendance } from "@/lib/data/mock/attendance";
-import { mockStudents } from "@/lib/data/mock/students";
+import { prisma } from "@/lib/database/prisma";
 import type {
   AttendanceStatus,
   NorseOneRole,
@@ -45,21 +45,9 @@ export default async function AttendancePage() {
 
   const role = session.user.role as NorseOneRole;
 
-  const student =
-    mockStudents.find(
-      (candidate) =>
-        candidate.userId === session.user.id
-    ) ?? mockStudents[0];
-
-  const records = mockAttendance.filter(
-    (record) =>
-      record.studentId === student?.id
-  );
-
-  const attendance =
-    records.length > 0
-      ? records
-      : mockAttendance;
+  const student = await prisma.studentProfile.findUnique({ where: { userId: session.user.id } });
+  const rows = student ? await prisma.attendanceRecord.findMany({ where: { studentId: student.id }, orderBy: { date: "desc" } }) : [];
+  const attendance = rows.map(row => ({ ...row, date: row.date.toISOString().slice(0, 10) }));
 
   const present = attendance.filter(
     (record) => record.status === "PRESENT"
@@ -95,7 +83,7 @@ export default async function AttendancePage() {
           <span>ATTENDANCE RATE</span>
 
           <strong>
-            {student?.attendanceRate ?? 0}%
+            {attendance.length ? Math.round(100 * (present + tardy) / attendance.length) + "%" : "No records"}
           </strong>
         </div>
 

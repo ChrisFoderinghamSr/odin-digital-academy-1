@@ -1,10 +1,12 @@
+// File introduced 2026-08-17 (fe05ed4).
+import { createHash } from "node:crypto";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 
 import authConfig from "@/auth.config";
-import { mockUsers } from "@/lib/data/mock/users";
+import { prisma } from "@/lib/database/prisma";
 import type { NorseOneRole } from "@/types/norse-one";
 
 const credentialsSchema = z.object({
@@ -41,27 +43,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const { email, password } = parsed.data;
 
-        const user = mockUsers.find(
-          (candidate) =>
-            candidate.email.toLowerCase() ===
-              email.toLowerCase() &&
-            candidate.active
-        );
-
-        if (!user) {
-          return null;
-        }
-
-        const passwordHash =
-          process.env.NORSE_DEMO_PASSWORD_HASH;
-
-        if (!passwordHash) {
-          console.error(
-            "NORSE_DEMO_PASSWORD_HASH is not configured."
-          );
-
-          return null;
-        }
+        // Use the account's own hash so database IDs and permissions follow the same identity.
+        const user = await prisma.user.findFirst({
+          where: { email: { equals: email.trim(), mode: "insensitive" }, status: "ACTIVE" },
+        });
+        if (!user?.passwordHash) return null;
+        const passwordHash = user.passwordHash;
 
         const passwordValid =
           await bcrypt.compare(
@@ -85,12 +72,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
   callbacks: {
     async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.role =
-          user.role as NorseOneRole;
-      }
-
+      const id = user?.id ?? token.id;
+      if (typeof id !== "string") return null;
+      const account = await prisma.user.findUnique({ where: { id }, select: { role: true, status: true, passwordHash: true } });
+      if (!account?.passwordHash || account.status !== "ACTIVE") return null;
+      // Changing a password also retires sessions issued with the previous credential.
+      const version = createHash("sha256").update(account.passwordHash).digest("hex");
+      if (!user && token.credentialVersion !== version) return null;
+      token.id = id;
+      token.role = account.role;
+      token.credentialVersion = version;
       return token;
     },
 

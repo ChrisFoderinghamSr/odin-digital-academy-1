@@ -1,3 +1,4 @@
+// File introduced 2026-08-17 (fe05ed4).
 export type NorseOneRole =
   | "ADMINISTRATOR"
   | "DIRECTOR"

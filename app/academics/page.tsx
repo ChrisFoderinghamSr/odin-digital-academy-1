@@ -1,3 +1,4 @@
+// File introduced 2026-08-17 (fe05ed4).
 import Link from "next/link";
 
 const programs = [

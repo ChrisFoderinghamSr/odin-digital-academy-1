@@ -1,10 +1,11 @@
+// File introduced 2026-08-17 (fe05ed4).
+import { prisma } from "@/lib/database/prisma";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
 import NorseOneShell from "@/components/layout/norse-one/NorseOneShell";
 
-import { mockCourses } from "@/lib/data/mock/courses";
-import { mockStudents } from "@/lib/data/mock/students";
+import { getStudentByUserId, getStudentCourses } from "@/lib/services/norse-one/student-service";
 import type { NorseOneRole } from "@/types/norse-one";
 
 export default async function CurriculumPage() {
@@ -16,16 +17,14 @@ export default async function CurriculumPage() {
 
   const role = session.user.role as NorseOneRole;
 
-  const student =
-    mockStudents.find(
-      (candidate) =>
-        candidate.userId === session.user.id
-    ) ?? mockStudents[0];
+  const student = await getStudentByUserId(session.user.id);
+  const courses = student ? await getStudentCourses(student.id) : [];
 
-  const courses = mockCourses.filter(
-    (course) => course.active
-  );
-
+  const curricula = await prisma.curriculum.findMany({
+    where: { published: true, courseId: { in: courses.map(c => c.id) } },
+    include: { units: { orderBy: { sequence: "asc" }, include: { lessons: { orderBy: { sequence: "asc" } } } } },
+    orderBy: { title: "asc" },
+  });
   const averageProgress =
     courses.length > 0
       ? Math.round(
@@ -135,6 +134,13 @@ export default async function CurriculumPage() {
             </small>
           </article>
         ))}
+      </section>
+      <section className="norse-message-panel"><h2>Lessons</h2>
+        {!curricula.length && <p>No lessons have been published for your courses yet.</p>}
+        {curricula.map(c => <article key={c.id}><h3>{c.title}</h3>
+          {c.units.map(u => <details key={u.id}><summary>{u.title}</summary>
+            {u.lessons.map(l => <div key={l.id}><strong>{l.title}</strong><p>{l.description}</p><p>{l.objectives}</p></div>)}
+          </details>)}</article>)}
       </section>
     </NorseOneShell>
   );

@@ -1,3 +1,4 @@
+// File introduced 2026-08-19 (38d23d8).
 "use client";
 
 import { useEffect, useState } from "react";
@@ -10,7 +11,7 @@ interface SubmissionWorkspaceProps {
 interface SubmissionResponse {
   submission: {
     id: string;
-    response: string | null;
+    responseText: string | null;
     status: string;
     submittedAt: string | null;
     feedback: string | null;
@@ -39,6 +40,7 @@ export default function SubmissionWorkspace({
     null
   );
 
+  const [loadFailed, setLoadFailed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -52,6 +54,8 @@ export default function SubmissionWorkspace({
     let cancelled = false;
 
     async function loadSubmission() {
+      setLoading(true);
+      setLoadFailed(false);
       try {
         const response = await fetch(
           `/api/norse-one/assignments/${assignmentId}/submission`,
@@ -76,7 +80,7 @@ export default function SubmissionWorkspace({
 
         if (data.submission) {
           setResponse(
-            data.submission.response ?? ""
+            data.submission.responseText ?? ""
           );
 
           setStatus(data.submission.status);
@@ -87,6 +91,7 @@ export default function SubmissionWorkspace({
         }
       } catch (error) {
         if (!cancelled) {
+          setLoadFailed(true);
           setFeedback(
             error instanceof Error
               ? error.message
@@ -136,7 +141,7 @@ export default function SubmissionWorkspace({
           },
           body: JSON.stringify({
             action,
-            response: response.trim(),
+            responseText: response.trim(),
           }),
         }
       );
@@ -161,7 +166,7 @@ export default function SubmissionWorkspace({
         setStatus(data.submission.status);
 
         setResponse(
-          data.submission.response ?? ""
+          data.submission.responseText ?? ""
         );
 
         setFeedback(
@@ -181,6 +186,8 @@ export default function SubmissionWorkspace({
       setSubmitting(false);
     }
   }
+
+  if (loadFailed) return <p role="alert">Unable to load this submission. Reload the page to retry before editing.</p>;
 
   if (loading) {
     return (

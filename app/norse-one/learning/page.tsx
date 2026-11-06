@@ -1,3 +1,4 @@
+// File introduced 2026-08-17 (fe05ed4).
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -73,7 +74,7 @@ export default async function NorseOneLearningPage() {
     redirect("/norse-one/dashboard");
   }
 
-  const student = getStudentByUserId(
+  const student = await getStudentByUserId(
     session.user.id
   );
 
@@ -95,12 +96,12 @@ export default async function NorseOneLearningPage() {
     );
   }
 
-  const courses = getStudentCourses(
+  const courses = await getStudentCourses(
     student.id
   );
 
   const assignments =
-    getStudentAssignments(student.id);
+    await getStudentAssignments(student.id);
 
   const nextAssignment =
     assignments

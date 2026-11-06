@@ -1,3 +1,4 @@
+// File introduced 2026-08-17 (fe05ed4). Sample data for development; account-scoped pages query PostgreSQL.
 import type { Course } from "@/types/norse-one";
 
 export const mockCourses: Course[] = [

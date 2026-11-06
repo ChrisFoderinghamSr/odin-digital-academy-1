@@ -1,3 +1,4 @@
+// File introduced 2026-08-19 (38d23d8).
 import { prisma } from "@/lib/database/prisma";
 
 export interface SaveSubmissionInput {
@@ -15,6 +16,7 @@ export async function getStudentSubmission(
     await prisma.assignment.findFirst({
       where: {
         id: assignmentId,
+        status: { notIn: ["DRAFT", "ARCHIVED", "CANCELLED"] },
 
         targets: {
           some: {
@@ -68,115 +70,25 @@ export async function getStudentSubmission(
 export async function saveStudentSubmission(
   input: SaveSubmissionInput
 ) {
-  const assignment =
-    await prisma.assignment.findFirst({
-      where: {
-        id: input.assignmentId,
-
-        targets: {
-          some: {
-            studentId: input.studentId,
-          },
-        },
-      },
-
-      select: {
-        id: true,
-        status: true,
-      },
-    });
-
-  if (!assignment) {
-    throw new Error(
-      "Assignment is not available to this student."
-    );
-  }
-
-  const existingSubmission =
-    await prisma.submission.findUnique({
-      where: {
-        assignmentId_studentId: {
-          assignmentId: input.assignmentId,
-          studentId: input.studentId,
-        },
-      },
-    });
-
-  if (
-    existingSubmission?.status ===
-    "GRADED"
-  ) {
-    throw new Error(
-      "A graded assignment cannot be modified."
-    );
-  }
-
-  if (
-    input.action === "SUBMIT" &&
-    !input.responseText.trim()
-  ) {
-    throw new Error(
-      "A response is required before submitting."
-    );
-  }
-
-  if (
-    input.action === "SUBMIT" &&
-    existingSubmission?.status ===
-      "SUBMITTED"
-  ) {
-    throw new Error(
-      "This assignment has already been submitted."
-    );
-  }
-
-  const status =
-    input.action === "SUBMIT"
-      ? "SUBMITTED"
-      : "IN_PROGRESS";
-
-  const responseText =
-    input.responseText.trim();
-
-  return prisma.submission.upsert({
-    where: {
-      assignmentId_studentId: {
-        assignmentId:
-          input.assignmentId,
-        studentId:
-          input.studentId,
-      },
-    },
-
-    create: {
-      assignmentId:
-        input.assignmentId,
-
-      studentId:
-        input.studentId,
-
-      status,
-
-      responseText:
-        responseText || null,
-
-      submittedAt:
-        input.action === "SUBMIT"
-          ? new Date()
-          : null,
-    },
-
-    update: {
-      status,
-
-      responseText:
-        responseText || null,
-
-      ...(input.action === "SUBMIT"
-        ? {
-            submittedAt: new Date(),
-          }
-        : {}),
-    },
+  const { assignmentId, studentId, action } = input;
+  const responseText = input.responseText.trim();
+  if (action === "SUBMIT" && !responseText) throw new Error("A response is required before submitting.");
+  return prisma.$transaction(async tx => {
+    // Lock the target before checking status. Two browser tabs must not reopen a final submission.
+    const targets = await tx.$queryRaw<{ id: string }[]>`
+      SELECT t.id FROM "AssignmentTarget" t JOIN "Assignment" a ON a.id = t."assignmentId"
+      WHERE t."assignmentId" = ${assignmentId} AND t."studentId" = ${studentId}
+        AND a.status NOT IN ('DRAFT', 'ARCHIVED', 'CANCELLED') FOR UPDATE OF t, a
+    `;
+    if (!targets.length) throw new Error("Assignment is not available to this student.");
+    const where = { assignmentId_studentId: { assignmentId, studentId } };
+    const existing = await tx.submission.findUnique({ where });
+    if (existing && !["NOT_STARTED", "IN_PROGRESS"].includes(existing.status)) {
+      if (action === "SUBMIT" && existing.status === "SUBMITTED" && existing.responseText === responseText) return existing;
+      throw new Error("A finalized submission cannot be modified.");
+    }
+    const status = action === "SUBMIT" ? "SUBMITTED" as const : "IN_PROGRESS" as const;
+    const data = { status, responseText: responseText || null, submittedAt: action === "SUBMIT" ? new Date() : null };
+    return tx.submission.upsert({ where, create: { assignmentId, studentId, ...data }, update: data });
   });
 }

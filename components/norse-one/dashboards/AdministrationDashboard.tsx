@@ -1,105 +1,39 @@
+// File introduced 2026-08-17 (fe05ed4).
 import Link from "next/link";
+import { revalidatePath } from "next/cache";
+import { requireAuthentication, requirePermission } from "@/lib/auth/authorization";
+import { roleHasPermission } from "@/lib/auth/permissions";
+import { prisma } from "@/lib/database/prisma";
 
-export default function AdministrationDashboard() {
-  return (
-    <>
-      <section className="norse-dashboard-header">
-        <div>
-          <span className="norse-eyebrow">
-            ACADEMY ADMINISTRATION
-          </span>
+async function review(form: FormData) {
+  "use server";
+  const decision = form.get("decision");
+  if (decision !== "ACCEPTED" && decision !== "DECLINED") throw new Error("Choose an admissions decision.");
+  const { user } = await requirePermission(decision === "ACCEPTED" ? "APPROVE_ADMISSION" : "DECLINE_ADMISSION");
+  const id = String(form.get("id"));
+  await prisma.$transaction(async tx => {
+    const changed = await tx.admissionApplication.updateMany({ where: { id, status: { in: ["SUBMITTED", "UNDER_REVIEW"] } },
+      data: { status: decision, reviewerId: user.id, reviewedAt: new Date() } });
+    if (changed.count) await tx.auditLog.create({ data: { userId: user.id, action: decision, resource: "AdmissionApplication", resourceId: id } });
+  });
+  revalidatePath("/norse-one/dashboard");
+}
 
-          <h1>
-            Administration
-            <span> Center.</span>
-          </h1>
-
-          <p>
-            Manage admissions, enrollment, people,
-            curriculum, scholarships, technology, and
-            system operations.
-          </p>
-        </div>
-
-        <div className="norse-academic-badge">
-          <span>SECURITY LEVEL</span>
-          <strong>Privileged</strong>
-          <small>Administrative access</small>
-        </div>
-      </section>
-
-      <section className="norse-stat-grid">
-        <article className="norse-stat-card">
-          <span>STUDENTS</span>
-          <strong>248</strong>
-          <small>Active enrollment</small>
-        </article>
-
-        <article className="norse-stat-card">
-          <span>APPLICATIONS</span>
-          <strong>41</strong>
-          <small>Current applicants</small>
-        </article>
-
-        <article className="norse-stat-card">
-          <span>STAFF</span>
-          <strong>32</strong>
-          <small>Active employees</small>
-        </article>
-
-        <article className="norse-stat-card">
-          <span>COURSES</span>
-          <strong>116</strong>
-          <small>Active curriculum</small>
-        </article>
-      </section>
-
-      <section className="norse-dashboard-panel">
-        <div className="norse-panel-header">
-          <div>
-            <span>ADMINISTRATION</span>
-            <h2>Academy Operations</h2>
-          </div>
-        </div>
-
-        <div className="norse-curriculum-grid">
-          <Link
-            href="/norse-one/admissions"
-            className="norse-curriculum-card"
-          >
-            <span>01</span>
-            <strong>Admissions</strong>
-            <small>Review applicants →</small>
-          </Link>
-
-          <Link
-            href="/norse-one/enrollment"
-            className="norse-curriculum-card"
-          >
-            <span>02</span>
-            <strong>Enrollment</strong>
-            <small>Manage enrollment →</small>
-          </Link>
-
-          <Link
-            href="/norse-one/curriculum"
-            className="norse-curriculum-card"
-          >
-            <span>03</span>
-            <strong>Curriculum</strong>
-            <small>Manage academics →</small>
-          </Link>
-
-          <Link
-            href="/norse-one/messages"
-            className="norse-curriculum-card"
-          >
-            <span>04</span>
-            <strong>Communications</strong>
-            <small>Academy messages →</small>
-          </Link>
-        </div>
-      </section>
-    </>
-  );
+export default async function AdministrationDashboard() {
+  const { user } = await requireAuthentication();
+  const canReview = roleHasPermission(user.role, "REVIEW_ADMISSION");
+  const applications = canReview ? await prisma.admissionApplication.findMany({
+    where: { status: { in: ["SUBMITTED", "UNDER_REVIEW"] } }, orderBy: { submittedAt: "asc" },
+  }) : [];
+  return <><section className="norse-page-heading"><h1>Administration</h1><p>Signed in as {user.name}</p></section>
+    {roleHasPermission(user.role, "MANAGE_CURRICULUM") && <Link className="button button-gold" href="/norse-one/administration/curriculum">Manage curriculum</Link>}
+    <Link className="button button-outline" href="/norse-one/messages">Inbox</Link>
+    {canReview && <section className="norse-message-panel"><h2>Admissions queue</h2>
+      {!applications.length && <p>No applications are awaiting review.</p>}
+      {applications.map(a => <article key={a.id}><strong>{a.studentFirstName} {a.studentLastName}</strong><p>Requested grade: {a.requestedGrade}</p>
+        <form action={review}><input name="id" type="hidden" value={a.id}/>
+          {roleHasPermission(user.role, "APPROVE_ADMISSION") && <button className="button" name="decision" value="ACCEPTED">Accept</button>}
+          {roleHasPermission(user.role, "DECLINE_ADMISSION") && <button className="button" name="decision" value="DECLINED">Decline</button>}
+        </form></article>)}</section>}
+  </>;
 }

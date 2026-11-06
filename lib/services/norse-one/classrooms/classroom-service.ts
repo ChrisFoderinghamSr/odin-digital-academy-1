@@ -1,3 +1,5 @@
+// File introduced 2026-08-17 (fe05ed4).
+import { prisma } from "@/lib/database/prisma";
 import { requirePermission } from "@/lib/auth/authorization";
 
 export interface CreateClassroomInput {
@@ -28,10 +30,8 @@ export async function createClassroom(
     throw new Error("Teacher is required.");
   }
 
-  return {
-    ...input,
-    created: true,
-  };
+  const classroom = await prisma.classroom.create({ data: { ...input, name: input.name.trim() } });
+  return { ...classroom, created: true };
 }
 
 export async function addStudentToClassroom(
@@ -46,6 +46,8 @@ export async function addStudentToClassroom(
     );
   }
 
+  await prisma.classroomStudent.upsert({ where: { classroomId_studentId: { classroomId, studentId } },
+    create: { classroomId, studentId }, update: {} });
   return {
     classroomId,
     studentId,

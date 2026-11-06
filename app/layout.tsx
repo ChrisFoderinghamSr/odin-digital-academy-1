@@ -1,3 +1,4 @@
+// File introduced 2026-08-13 (10b2452). The shared navigation belongs here so public pages use the same entry points.
 import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
@@ -14,7 +15,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" data-scroll-behavior="smooth">
       <body>
         <header className="site-header">
           <div className="header-inner">

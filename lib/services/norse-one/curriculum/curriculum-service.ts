@@ -1,3 +1,4 @@
+// File introduced 2026-08-17 (fe05ed4).
 import { prisma } from "@/lib/database/prisma";
 import { requirePermission } from "@/lib/auth/authorization";
 import { normalizePagination } from "@/lib/database/query-types";

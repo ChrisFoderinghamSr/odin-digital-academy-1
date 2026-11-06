@@ -1,3 +1,4 @@
+// File introduced 2026-08-17 (fe05ed4). Hiding a link is a navigation decision. Protected handlers enforce access independently.
 "use client";
 
 import Link from "next/link";
@@ -38,66 +39,35 @@ const navigation: NavigationItem[] = [
     label: "My Learning",
     href: "/norse-one/learning",
     icon: "◇",
-    roles: [
-      "STUDENT",
-      "PARENT",
-      "TEACHER",
-      "ASSISTANT",
-    ],
+    roles: ["STUDENT"],
   },
 
   {
     label: "Assignments",
     href: "/norse-one/assignments",
     icon: "✓",
-    roles: [
-      "STUDENT",
-      "PARENT",
-      "TEACHER",
-      "ASSISTANT",
-    ],
+    roles: ["STUDENT"],
   },
 
   {
     label: "Grades",
     href: "/norse-one/grades",
     icon: "A",
-    roles: [
-      "STUDENT",
-      "PARENT",
-      "TEACHER",
-      "ASSISTANT",
-      "DIRECTOR",
-      "ADMINISTRATOR",
-    ],
+    roles: ["STUDENT"],
   },
 
   {
     label: "Curriculum",
     href: "/norse-one/curriculum",
     icon: "▤",
-    roles: [
-      "ADMINISTRATOR",
-      "DIRECTOR",
-      "TEACHER",
-      "ASSISTANT",
-      "PARENT",
-      "STUDENT",
-    ],
+    roles: ["STUDENT"],
   },
 
   {
     label: "Attendance",
     href: "/norse-one/attendance",
     icon: "◷",
-    roles: [
-      "ADMINISTRATOR",
-      "DIRECTOR",
-      "TEACHER",
-      "ASSISTANT",
-      "PARENT",
-      "STUDENT",
-    ],
+    roles: ["STUDENT"],
   },
 
   {
@@ -120,50 +90,28 @@ const navigation: NavigationItem[] = [
     label: "Family",
     href: "/norse-one/family",
     icon: "♧",
-    roles: [
-      "PARENT",
-      "STUDENT",
-    ],
+    roles: ["PARENT"],
   },
 
   {
     label: "Admissions",
     href: "/norse-one/admissions",
     icon: "◇",
-    roles: [
-      "ADMINISTRATOR",
-      "DIRECTOR",
-      "SUPPORT",
-      "PARENT",
-    ],
+    roles: ["PARENT"],
   },
 
   {
     label: "Enrollment",
     href: "/norse-one/enrollment",
     icon: "▣",
-    roles: [
-      "ADMINISTRATOR",
-      "DIRECTOR",
-      "SUPPORT",
-      "PARENT",
-    ],
+    roles: ["PARENT"],
   },
 
   {
     label: "Resources",
     href: "/norse-one/resources",
     icon: "▧",
-    roles: [
-      "ADMINISTRATOR",
-      "DIRECTOR",
-      "DEVELOPER",
-      "TEACHER",
-      "ASSISTANT",
-      "SUPPORT",
-      "PARENT",
-      "STUDENT",
-    ],
+    roles: ["STUDENT"],
   },
 
   {

@@ -1,8 +1,9 @@
+// File introduced 2026-08-17 (fe05ed4). Page redirects help navigation; write operations check permissions again on the server.
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 
 export default auth((request) => {
-  if (!request.auth?.user) {
+  if (!request.auth?.user?.id) {
     const loginUrl = new URL("/login", request.nextUrl.origin);
 
     loginUrl.searchParams.set(
