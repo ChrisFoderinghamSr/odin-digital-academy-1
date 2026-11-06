@@ -1,75 +1,14 @@
-export default function ContactPage() {
-  return (
-    <main className="public-page">
-      <section className="page-hero compact-page-hero">
-        <div className="container page-hero-content">
-          <span className="section-label">CONTACT</span>
+// File introduced 2026-08-17 (fe05ed4).
+import { z } from "zod";
+import { connection } from "next/server";
 
-          <h1>
-            Connect with
-            <span> Odin Academy.</span>
-          </h1>
-
-          <p>
-            Questions about admissions, academics, technology, or Norse One?
-            We&apos;re building a connected support experience for every family.
-          </p>
-        </div>
-      </section>
-
-      <section className="section section-white">
-        <div className="container contact-layout">
-          <div>
-            <span className="section-label">CONTACT THE ACADEMY</span>
-
-            <h2>
-              We&apos;re here to
-              <span> help.</span>
-            </h2>
-
-            <p className="contact-copy">
-              Use the form to send an inquiry. Production communications will
-              be routed through the academy&apos;s secure support system.
-            </p>
-          </div>
-
-          <div className="application-card">
-            <form className="academy-form">
-              <label>
-                Name
-                <input type="text" name="name" />
-              </label>
-
-              <label>
-                Email
-                <input type="email" name="email" />
-              </label>
-
-              <label>
-                Inquiry Type
-
-                <select name="type">
-                  <option value="">Select</option>
-                  <option value="admissions">Admissions</option>
-                  <option value="academics">Academics</option>
-                  <option value="norse-one">Norse One</option>
-                  <option value="technology">Technology Support</option>
-                  <option value="general">General Question</option>
-                </select>
-              </label>
-
-              <label>
-                Message
-                <textarea name="message" rows={6} />
-              </label>
-
-              <button type="submit" className="button button-gold">
-                Send Inquiry
-              </button>
-            </form>
-          </div>
-        </div>
-      </section>
-    </main>
-  );
+export default async function ContactPage() {
+  await connection();
+  // One configured mailbox serves admissions, account recovery and general support.
+  const contact = z.email().safeParse(process.env.ACADEMY_SUPPORT_EMAIL);
+  return <main className="public-page"><section className="section section-white"><div className="container application-card">
+    <h1>Contact the academy</h1><p>For admissions, coursework, or account recovery, include your name and a short description of what you need.</p>
+    {contact.success ? <a className="button button-gold" href={"mailto:" + contact.data}>Email {contact.data}</a> :
+      <p>Use the academy contact who issued your account. A public support address has not been configured.</p>}
+  </div></section></main>;
 }

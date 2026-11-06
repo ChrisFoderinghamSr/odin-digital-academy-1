@@ -1,3 +1,4 @@
+// File introduced 2026-08-17 (fe05ed4). Keep one client through development reloads to avoid exhausting connections.
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
 

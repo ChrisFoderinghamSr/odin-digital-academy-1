@@ -1,0 +1,64 @@
+// Run the actual services and route handlers against a disposable PostgreSQL engine.
+// Only the session and permission providers are substituted; the academic records use real SQL.
+import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
+const require = createRequire(import.meta.url);
+const path = require("node:path"), fs=require("node:fs"), assert=require("node:assert/strict");
+const root=fileURLToPath(new URL("../", import.meta.url)), dep=createRequire(path.join(root,"package.json"));
+const {PGlite}=dep("@electric-sql/pglite"), {PrismaPg}=dep("@prisma/adapter-pg"), {PrismaClient}=dep("@prisma/client");
+const {Duplex}=require("node:stream"), pg=dep("pg"), ts=dep("typescript");
+(async()=>{
+ const db=new PGlite();await db.waitReady;
+ await db.exec(fs.readFileSync(path.join(root,"prisma/migrations/20260817220340_add_submission_response/migration.sql"),"utf8"));
+ const pool=new pg.Pool({user:"postgres",database:"postgres",max:1,stream:()=>{
+   const socket=new Duplex({read(){},write(bytes,enc,cb){db.execProtocolRaw(bytes).then(data=>{if(data.length)socket.push(Buffer.from(data));cb()},cb)}});
+   socket.ref=socket.unref=socket.setNoDelay=socket.setKeepAlive=()=>socket;socket.connect=()=>queueMicrotask(()=>socket.emit("connect"));return socket;
+ }});
+ const prisma=new PrismaClient({adapter:new PrismaPg(pool)});
+ const service=(file,extra={})=>{let exports={}; let js=ts.transpileModule(fs.readFileSync(path.join(root,file),"utf8"),{compilerOptions:{module:ts.ModuleKind.CommonJS,esModuleInterop:true,target:ts.ScriptTarget.ES2022}}).outputText;
+ new Function("exports","require",js)(exports,key=>key==="@/lib/database/prisma"?{prisma}:extra[key]??dep(key));return exports;};
+ const students=service("lib/services/norse-one/student-service.ts"), submissions=service("lib/services/norse-one/submission/submission-service.ts");
+ const grader=service("lib/services/norse-one/grading/grading-service.ts",{"@/lib/auth/authorization":{requirePermission:async()=>({user:{id:"teacher"}})}});
+ const create=(model,data)=>prisma[model].create({data});
+ for(const [id,role] of [["teacher","TEACHER"],["s1","STUDENT"],["s2","STUDENT"]])await create("user",{id,email:id+"@example.invalid",firstName:id,lastName:"Test",role});
+ await create("family",{id:"f",familyName:"Test"});
+ for(const id of ["s1","s2"])await create("studentProfile",{id,userId:id,familyId:"f",studentNumber:id,firstName:id,lastName:"Test",academicLevel:"GRADE_5"});
+ await create("staffProfile",{id:"t",userId:"teacher",employeeId:"t",title:"Instructor"});
+ await create("academicYear",{id:"year",name:"Test",startDate:new Date(),endDate:new Date()});
+ await create("semester",{id:"term",name:"Fall",yearId:"year",semester:"FALL"});
+ await create("gradeLevel",{id:"level",code:"5",name:"Grade 5",sortOrder:5});
+ await create("subject",{id:"sub",name:"Math"});await create("course",{id:"math",name:"Math",code:"M5",subjectId:"sub",gradeLevelId:"level",semesterId:"term",instructorId:"t"});
+ await create("classroom",{id:"cl",name:"Class",courseId:"math",gradeLevelId:"level",teacherId:"t"});
+ await create("classroomStudent",{studentId:"s1",classroomId:"cl"});
+ await create("assignment",{id:"a",title:"Quiz",instructions:"Answer",pointsPossible:5,courseId:"math",classroomId:"cl",createdById:"teacher",targetType:"CLASSROOM",status:"PUBLISHED",targets:{create:{studentId:"s1"}}});
+ const input={studentId:"s1",assignmentId:"a",responseText:"draft",action:"SAVE_DRAFT"};
+ assert.equal((await students.getStudentAssignments("s1")).length,1);assert.equal((await students.getStudentAssignments("s2")).length,0);
+ await submissions.saveStudentSubmission(input);assert.equal((await submissions.getStudentSubmission("s1","a")).submission.responseText,"draft");
+ await assert.rejects(submissions.saveStudentSubmission({...input,studentId:"s2"}));
+ await assert.rejects(submissions.saveStudentSubmission({...input,action:"SUBMIT",responseText:" "}));
+ let submit={...input,action:"SUBMIT",responseText:"final"};const final=await submissions.saveStudentSubmission(submit);
+ assert.equal((await submissions.saveStudentSubmission(submit)).id,final.id);await assert.rejects(submissions.saveStudentSubmission(input));
+ await grader.gradeSubmission(final.id,4,"Well done");assert.equal((await students.getStudentAssignmentById("s1","a")).pointsEarned,4);
+ assert.equal((await prisma.gradeRecord.findFirst()).score.toNumber(),80);await assert.rejects(grader.gradeSubmission(final.id,3,"duplicate"));
+ const authApi={"@/auth":{auth:async()=>({user:{id:"s1",role:"STUDENT"}})},"@/lib/services/norse-one/submission/submission-service":submissions};
+ const route=service("app/api/norse-one/assignments/[id]/submission/route.ts",authApi);
+ const ctx={params:Promise.resolve({id:"a"})};
+ assert.equal((await (await route.GET(new Request("http://local"),ctx)).json()).submission.responseText,"final");
+ const post=body=>route.POST(new Request("http://local",{method:"POST",body:JSON.stringify(body)}),ctx);
+ assert.equal((await post(null)).status,400);assert.equal((await post({response:"bad",action:"SUBMIT"})).status,400);
+ assert.equal((await post({responseText:"reopen",action:"SAVE_DRAFT"})).status,409);
+ const nullSession=service("app/api/norse-one/assignments/[id]/submission/route.ts",{...authApi,"@/auth":{auth:async()=>null}});
+ assert.equal((await nullSession.GET(new Request("http://local"),ctx)).status,404);
+ process.env.AUTH_SECRET="test-only";const bcrypt=dep("bcryptjs"),crypto=require("node:crypto");
+ const hash=await bcrypt.hash("before-test-password",4);await prisma.user.update({where:{id:"s1"},data:{passwordHash:hash}});
+ const recovery=service("app/login/forgot-password/actions.ts");
+ const token=exp=>{const p=Buffer.from(JSON.stringify({id:"s1",exp})).toString("base64url");return p+"."+crypto.createHmac("sha256","test-only").update("odin-reset:"+p+":"+hash).digest("base64url")};
+ assert.equal(await recovery.resetPassword(token(Date.now()-5000),"after-test-password"),false);
+ const valid=token(Date.now()+60000);assert.equal(await recovery.resetPassword(valid,"after-test-password"),true);
+ assert.equal(await recovery.resetPassword(valid,"another-test-password"),false);
+ assert.equal(await bcrypt.compare("after-test-password",(await prisma.user.findUnique({where:{id:"s1"}})).passwordHash),true);
+ console.log("PASS: route GET and POST, invalid payloads, unauthenticated access, final-state conflict; expired and single-use recovery");
+ console.log("PASS: full migration; isolated student lists; save/reopen draft; unauthorized/blank rejected; idempotent submit; locked final; instructor grading; grade percentage; duplicate grade rejected");
+ await prisma.$disconnect();await pool.end();await db.close();
+})().catch(e=>{console.error(String(e));process.exit(1)});
+

@@ -1,3 +1,4 @@
+// File introduced 2026-08-17 (fe05ed4).
 "use client";
 
 import { FormEvent, useState } from "react";
@@ -22,19 +23,20 @@ export default function LoginPage() {
     const email = String(formData.get("email") ?? "");
     const password = String(formData.get("password") ?? "");
 
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
-
-    if (result?.error) {
-      setError("We could not sign you in with those credentials.");
+    try {
+      const result = await signIn("credentials", { email, password, redirect: false });
+      if (!result?.ok || result.error) {
+        setError("We could not sign you in with those credentials.");
+        return;
+      }
+      const target = new URLSearchParams(window.location.search).get("callbackUrl");
+      const next = target ? new URL(target, window.location.origin) : null;
+      router.push(next?.origin === window.location.origin ? next.pathname + next.search : "/norse-one/dashboard");
+    } catch {
+      setError("Sign-in is temporarily unavailable. Please try again.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    router.push("/norse-one/dashboard");
   }
 
   return (

@@ -1,3 +1,4 @@
+// File introduced 2026-08-17 (fe05ed4). A role grants an action; record ownership is checked by the service performing it.
 import type { NorseOneRole } from "@/types/norse-one";
 
 export type NorseOnePermission =

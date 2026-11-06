@@ -1,3 +1,4 @@
+// File introduced 2026-08-17 (fe05ed4).
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";

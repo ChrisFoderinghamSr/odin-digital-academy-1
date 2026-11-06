@@ -1,3 +1,4 @@
+// File introduced 2026-08-13 (10b2452).
 import Link from "next/link";
 import Image from "next/image";
 

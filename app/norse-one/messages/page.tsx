@@ -1,31 +1,23 @@
+// File introduced 2026-08-17 (fe05ed4).
+import { redirect } from "next/navigation";
+import { auth } from "@/auth";
+import { prisma } from "@/lib/database/prisma";
 import NorseOneShell from "@/components/layout/norse-one/NorseOneShell";
 
-export default function MessagesPage() {
-  return (
-    <NorseOneShell role="STUDENT">
-      <section className="norse-page-heading">
-        <span>COMMUNICATION</span>
-        <h1>Messages</h1>
-        <p>Stay connected with instructors and the Academy.</p>
-      </section>
-
-      <section className="norse-message-panel">
-        <article>
-          <span>Ms. Raven • Mathematics</span>
-          <strong>Great progress this week!</strong>
-          <p>
-            Your latest mathematics work shows excellent improvement.
-          </p>
-        </article>
-
-        <article>
-          <span>Odin Digital Academy</span>
-          <strong>Weekly Academy Newsletter</strong>
-          <p>
-            Review this week&apos;s announcements and upcoming activities.
-          </p>
-        </article>
-      </section>
-    </NorseOneShell>
-  );
+export default async function MessagesPage() {
+  const session = await auth();
+  if (!session?.user) redirect("/login");
+  // Archived copies belong to each recipient, so filter the delivery record as well as the message.
+  const inbox = await prisma.messageRecipient.findMany({
+    where: { recipientId: session.user.id, archived: false, message: { archived: false } },
+    include: { message: { include: { sender: { select: { firstName: true, lastName: true } } } } },
+    orderBy: { message: { createdAt: "desc" } },
+  });
+  return <NorseOneShell role={session.user.role}>
+    <section className="norse-page-heading"><h1>Messages</h1></section>
+    <section className="norse-message-panel">
+      {inbox.map(({ message }) => <article key={message.id}><span>{message.sender.firstName} {message.sender.lastName}</span><h2>{message.subject}</h2><p>{message.body}</p></article>)}
+      {!inbox.length && <p>Your inbox is empty.</p>}
+    </section>
+  </NorseOneShell>;
 }

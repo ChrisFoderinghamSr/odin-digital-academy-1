@@ -1,44 +1,18 @@
+// File introduced 2026-08-17 (fe05ed4).
+import Link from "next/link";
+import { getMyFamily } from "@/lib/services/norse-one/family-service";
 import NorseOneShell from "@/components/layout/norse-one/NorseOneShell";
 
-const requirements = [
-  ["Student Information", "Complete"],
-  ["Parent / Guardian Information", "Complete"],
-  ["Academic Records", "Complete"],
-  ["Required Documents", "Pending"],
-  ["Enrollment Agreement", "Pending"],
-];
-
-export default function EnrollmentPage() {
+export default async function FamilyView() {
+  const family = await getMyFamily();
+  const records = family?.students.map(s => ({id:s.id,title:s.firstName+" "+s.lastName,detail:s.enrollmentStatus})) ?? [];
   return (
     <NorseOneShell role="PARENT">
-      <section className="norse-page-heading">
-        <span>ENROLLMENT</span>
-        <h1>Enrollment Center</h1>
-        <p>
-          Complete the remaining steps required to transition from admission
-          into active enrollment.
-        </p>
-      </section>
-
+      <section className="norse-page-heading"><span>Family services</span><h1>Enrollment</h1><p>{family?.familyName}</p></section>
       <section className="enrollment-panel">
-        {requirements.map(([requirement, status]) => (
-          <article key={requirement}>
-            <div>
-              <span>{requirement}</span>
-              <strong>{status}</strong>
-            </div>
-
-            <span
-              className={
-                status === "Complete"
-                  ? "enrollment-complete"
-                  : "enrollment-pending"
-              }
-            >
-              {status === "Complete" ? "✓" : "!"}
-            </span>
-          </article>
-        ))}
+        {records.map(row => <article key={row.id}><strong>{row.title}</strong><p>{row.detail}</p></article>)}
+        {!records.length && <p>No records are available for this household yet.</p>}
+        <Link href="/norse-one/admissions">View admissions</Link>
       </section>
     </NorseOneShell>
   );

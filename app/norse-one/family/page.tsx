@@ -1,30 +1,18 @@
+// File introduced 2026-08-17 (fe05ed4).
+import Link from "next/link";
+import { getMyFamily } from "@/lib/services/norse-one/family-service";
 import NorseOneShell from "@/components/layout/norse-one/NorseOneShell";
 
-export default function FamilyPage() {
+export default async function FamilyView() {
+  const family = await getMyFamily();
+  const records = family?.students.map(s => ({id:s.id,title:s.firstName+" "+s.lastName,detail:s.academicLevel})) ?? [];
   return (
     <NorseOneShell role="PARENT">
-      <section className="norse-page-heading">
-        <span>FAMILY CONNECTION</span>
-        <h1>Family</h1>
-        <p>
-          Manage the connection between parent accounts and student records.
-        </p>
-      </section>
-
-      <section className="family-profile-grid">
-        <article className="family-profile-card">
-          <span>PARENT / GUARDIAN</span>
-          <h2>Christian Foderingham</h2>
-          <p>Primary Parent / Guardian</p>
-          <strong>Account Verified</strong>
-        </article>
-
-        <article className="family-profile-card student-profile">
-          <span>STUDENT</span>
-          <h2>Raven Student</h2>
-          <p>Grade 5 • Preparatory Academy</p>
-          <strong>Enrollment Active</strong>
-        </article>
+      <section className="norse-page-heading"><span>Family connection</span><h1>My family</h1><p>{family?.familyName}</p></section>
+      <section className="enrollment-panel">
+        {records.map(row => <article key={row.id}><strong>{row.title}</strong><p>{row.detail}</p></article>)}
+        {!records.length && <p>No records are available for this household yet.</p>}
+        <Link href="/norse-one/enrollment">View enrollment</Link>
       </section>
     </NorseOneShell>
   );

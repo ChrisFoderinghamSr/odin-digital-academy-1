@@ -1,3 +1,4 @@
+// File introduced 2026-08-17 (fe05ed4). Bound pagination before constructing the database query.
 export interface PaginationInput {
   page: number;
   pageSize: number;

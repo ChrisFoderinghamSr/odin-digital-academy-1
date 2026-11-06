@@ -1,3 +1,4 @@
+// File introduced 2026-08-19 (38d23d8).
 import { NextResponse } from "next/server";
 
 import { auth } from "@/auth";
@@ -23,7 +24,7 @@ interface SubmissionRequest {
 async function getAuthenticatedStudentId() {
   const session = await auth();
 
-  if (!session?.user?.id) {
+  if (!session?.user?.id || session.user.role !== "STUDENT") {
     return null;
   }
 
@@ -83,15 +84,11 @@ export async function GET(
     }
 
     return NextResponse.json(result);
-  } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Unable to retrieve submission.";
+  } catch {
 
     return NextResponse.json(
       {
-        error: message,
+        error: "Unable to retrieve submission.",
       },
       {
         status: 500,
@@ -141,7 +138,7 @@ export async function POST(
     }
 
     if (
-      typeof body.responseText !==
+      !body || typeof body.responseText !==
       "string"
     ) {
       return NextResponse.json(
@@ -220,7 +217,7 @@ export async function POST(
 
     return NextResponse.json(
       {
-        error: message,
+        error: status === 500 ? "Unable to save submission." : message,
       },
       {
         status,

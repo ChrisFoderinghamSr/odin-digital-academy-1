@@ -1,10 +1,10 @@
+// File introduced 2026-08-17 (fe05ed4).
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
 import NorseOneShell from "@/components/layout/norse-one/NorseOneShell";
 
-import { mockGrades } from "@/lib/data/mock/grades";
-import { mockStudents } from "@/lib/data/mock/students";
+import { prisma } from "@/lib/database/prisma";
 import type { NorseOneRole } from "@/types/norse-one";
 
 function getGradeClass(letterGrade: string) {
@@ -32,20 +32,14 @@ export default async function GradesPage() {
 
   const role = session.user.role as NorseOneRole;
 
-  const student =
-    mockStudents.find(
-      (candidate) =>
-        candidate.userId === session.user.id
-    ) ?? mockStudents[0];
-
-  const grades = mockGrades.filter(
-    (grade) =>
-      grade.studentId === student?.id
-  );
-
-  const records = grades.length
-    ? grades
-    : mockGrades;
+  const grades = await prisma.gradeRecord.findMany({
+    where: { student: { userId: session.user.id } }, include: { course: { include: { semester: true, instructor: { include: { user: true } } } } },
+    orderBy: { gradedAt: "desc" },
+  });
+  const records = grades.map(g => ({
+    id: g.id, courseName: g.course.name, currentGrade: g.score.toNumber(), letterGrade: g.letterGrade ?? "—",
+    instructorName: g.course.instructor ? [g.course.instructor.user.firstName, g.course.instructor.user.lastName].join(" ") : "Unassigned",
+  }));
 
   const average =
     records.length > 0
@@ -88,9 +82,9 @@ export default async function GradesPage() {
         </article>
 
         <article className="norse-stat-card">
-          <span>COURSES</span>
+          <span>ASSESSMENTS</span>
           <strong>{records.length}</strong>
-          <small>Active graded courses</small>
+          <small>Recorded assessments</small>
         </article>
 
         <article className="norse-stat-card">
@@ -101,8 +95,8 @@ export default async function GradesPage() {
 
         <article className="norse-stat-card">
           <span>SEMESTER</span>
-          <strong>FALL</strong>
-          <small>Current academic term</small>
+          <strong>{[...new Set(grades.map(g => g.course.semester.name))].join(", ") || "—"}</strong>
+          <small>Terms represented</small>
         </article>
       </section>
 

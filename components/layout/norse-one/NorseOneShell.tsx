@@ -1,3 +1,5 @@
+// File introduced 2026-08-17 (fe05ed4).
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 
@@ -84,14 +86,7 @@ export default async function NorseOneShell({
           </div>
 
           <div className="norse-user-area">
-            <button
-              className="norse-notification"
-              aria-label="Notifications"
-              type="button"
-              title="Notifications"
-            >
-              ♢
-            </button>
+            <Link className="norse-notification" href="/norse-one/messages" aria-label="Open inbox">✉</Link>
 
             <div
               className="norse-user-avatar"
