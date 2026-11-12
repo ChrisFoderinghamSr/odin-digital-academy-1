@@ -1,182 +1,30 @@
-import { redirect } from "next/navigation";
-
-import { auth } from "@/auth";
+import {account,studentsFor} from "@/lib/academy/access";
+import {prisma} from "@/lib/database/prisma";
+import {revalidatePath} from "next/cache";
 import NorseOneShell from "@/components/layout/norse-one/NorseOneShell";
-
-import { mockAttendance } from "@/lib/data/mock/attendance";
-import { mockStudents } from "@/lib/data/mock/students";
-import type {
-  AttendanceStatus,
-  NorseOneRole,
-} from "@/types/norse-one";
-
-function formatStatus(status: AttendanceStatus) {
-  return status
-    .replace(/_/g, " ")
-    .toLowerCase()
-    .replace(/\b\w/g, (character) =>
-      character.toUpperCase()
-    );
+async function record(form:FormData) {
+  "use server";
+  const user=await account();
+  if (user.role !== "TEACHER") throw new Error("Teacher sign-in required.");
+  const status=form.get("status");
+  if(status !== "PRESENT" && status !== "ABSENT" && status !== "EXCUSED" && status !== "TARDY") throw new Error("Invalid status.");
+  const day=String(form.get("date")??"");
+  const date=new Date(day+"T00:00:00Z");
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(day)||!Number.isFinite(date.getTime())||date.toISOString().slice(0,10)!==day) throw new Error("Invalid date.");
+  const member=await prisma.classroomStudent.findFirst({where:{id:String(form.get("member")),classroom:{teacher:{userId:user.id},active:true}}});
+  if(!member) throw new Error("Student is outside this classroom.");
+  const {studentId,classroomId}=member;
+  await prisma.attendanceRecord.upsert({where:{studentId_classroomId_date:{studentId,classroomId,date}},create:{studentId,classroomId,date,status},update:{status}});
+  revalidatePath("/norse-one/attendance");
 }
-
-function getStatusClass(
-  status: AttendanceStatus
-) {
-  return `attendance-status ${status.toLowerCase()}`;
-}
-
-function formatDate(date: string) {
-  return new Date(
-    `${date}T12:00:00`
-  ).toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-export default async function AttendancePage() {
-  const session = await auth();
-
-  if (!session?.user) {
-    redirect("/login");
-  }
-
-  const role = session.user.role as NorseOneRole;
-
-  const student =
-    mockStudents.find(
-      (candidate) =>
-        candidate.userId === session.user.id
-    ) ?? mockStudents[0];
-
-  const records = mockAttendance.filter(
-    (record) =>
-      record.studentId === student?.id
-  );
-
-  const attendance =
-    records.length > 0
-      ? records
-      : mockAttendance;
-
-  const present = attendance.filter(
-    (record) => record.status === "PRESENT"
-  ).length;
-
-  const absent = attendance.filter(
-    (record) => record.status === "ABSENT"
-  ).length;
-
-  const excused = attendance.filter(
-    (record) => record.status === "EXCUSED"
-  ).length;
-
-  const tardy = attendance.filter(
-    (record) => record.status === "TARDY"
-  ).length;
-
-  return (
-    <NorseOneShell role={role}>
-      <section className="norse-page-heading">
-        <span>STUDENT RECORD</span>
-
-        <h1>Attendance</h1>
-
-        <p>
-          Review your current academic attendance
-          record.
-        </p>
-      </section>
-
-      <section className="norse-attendance-card">
-        <div>
-          <span>ATTENDANCE RATE</span>
-
-          <strong>
-            {student?.attendanceRate ?? 0}%
-          </strong>
-        </div>
-
-        <div>
-          <span>PRESENT</span>
-
-          <strong>{present}</strong>
-        </div>
-
-        <div>
-          <span>ABSENT</span>
-
-          <strong>{absent}</strong>
-        </div>
-
-        <div>
-          <span>EXCUSED</span>
-
-          <strong>{excused}</strong>
-        </div>
-
-        <div>
-          <span>TARDY</span>
-
-          <strong>{tardy}</strong>
-        </div>
-      </section>
-
-      <section className="norse-table-panel">
-        <div className="norse-table-header">
-          <div>
-            <strong>Attendance History</strong>
-
-            <span>
-              {student
-                ? `${student.firstName} ${student.lastName}`
-                : "Student Record"}
-            </span>
-          </div>
-
-          <span>
-            {attendance.length} records
-          </span>
-        </div>
-
-        {attendance.map((record) => (
-          <article
-            className="norse-table-row"
-            key={record.id}
-          >
-            <div>
-              <span>DATE</span>
-
-              <strong>
-                {formatDate(record.date)}
-              </strong>
-            </div>
-
-            <div>
-              <span>STATUS</span>
-
-              <b
-                className={getStatusClass(
-                  record.status
-                )}
-              >
-                {formatStatus(record.status)}
-              </b>
-            </div>
-
-            <div>
-              <span>NOTE</span>
-
-              <small>
-                {record.note ??
-                  "No additional note recorded."}
-              </small>
-            </div>
-          </article>
-        ))}
-      </section>
-    </NorseOneShell>
-  );
+export default async function AttendancePage(){
+  const user=await account();
+  const where=user.role==="TEACHER"?{classroom:{teacher:{userId:user.id}}}:{student:studentsFor(user)};
+  const records=await prisma.attendanceRecord.findMany({where,include:{student:true,classroom:true},orderBy:{date:"desc"},take:150});
+  const roster=user.role==="TEACHER"?await prisma.classroomStudent.findMany({where:{classroom:{teacher:{userId:user.id},active:true}},include:{student:true,classroom:true}}):[];
+  return <NorseOneShell><h1>Attendance</h1>{roster.length>0 && <form action={record} className="norse-grade-card">
+    <label>Student and classroom <select name="member">{roster.map(m=><option key={m.id} value={m.id}>{m.student.firstName} {m.student.lastName} · {m.classroom.name}</option>)}</select></label>
+    <label>Date <input type="date" name="date" required/></label><label>Attendance status <select name="status">{["PRESENT","ABSENT","EXCUSED","TARDY"].map(s=><option key={s}>{s}</option>)}</select></label>
+    <button>Save attendance</button></form>}{!records.length && <p>No attendance has been recorded.</p>}
+    {records.map(r=><p key={r.id}>{r.date.toISOString().slice(0,10)} · {r.student.firstName} {r.student.lastName} · {r.classroom.name} · {r.status}</p>)}</NorseOneShell>;
 }

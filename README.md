@@ -4,35 +4,9 @@
 
 Odin Digital Academy is a full-stack Learning Management System (LMS) built with modern web technologies. The application demonstrates authentication, PostgreSQL database integration, curriculum management, assignments, grades, attendance, messaging, admissions, resources, and protected student experiences.
 
-## 📊 Project Status
+## Release status
 
-| Component | Status |
-|---|---|
-| Overall Release | 🟢 Functional Development Release |
-| Core Application | 🟢 Operational |
-| AWS Amplify Deployment | 🟢 Deployed |
-| Next.js | 🟢 Operational |
-| React | 🟢 Operational |
-| TypeScript | 🟢 Operational |
-| PostgreSQL | 🟢 Operational |
-| Prisma 7.9.1 | 🟢 Validated |
-| Database Migration | 🟢 Current |
-| Authentication | 🟢 Operational |
-| Login / Logout | 🟢 Operational |
-| Protected Routes | 🟢 Operational |
-| Dashboard | 🟢 Operational |
-| Learning | 🟢 Operational |
-| Assignments | 🟡 Partial |
-| Assignment Submission | 🔴 Known Issue |
-| Grades | 🟢 Operational |
-| Curriculum | 🟢 Operational |
-| Attendance | 🟢 Operational |
-| Messages | 🟢 Operational |
-| Family | 🟢 Operational |
-| Resources | 🟢 Operational |
-| Admissions | 🟢 Operational |
-| API Architecture | 🟢 Implemented |
-| Production Readiness | 🟡 Pending |
+The student, instructor and family portals use PostgreSQL records. The Academy coursework GitHub Actions workflow runs a fresh migration, builds the application and exercises instructor publishing, draft reload, final submission and grading using two browser sessions. Check the result for the release commit before deploying it.
 
 ## 🧰 Technology Stack
 
@@ -89,15 +63,11 @@ Odin Digital Academy is a full-stack Learning Management System (LMS) built with
 - Dynamic curriculum API
 - Assignment submission API
 
-## 🔑 Demo Login
+## Account and deployment setup
 
-### Student Demo Account
+Provide DATABASE_URL to the application, DIRECT_URL to Prisma migrations, and a random AUTH_SECRET to the server. Set AUTH_URL to the public HTTPS origin. From the release checkout run `npm ci`, `npx prisma generate`, `npx prisma migrate deploy`, `npm run build` and `npm start`. Configure these values in the hosting service through its protected environment configuration.
 
-- **Email:** `student@example.com`
-- **Password:** `DemoPassword123!`
-- **Role:** Student
-- **Portal:** Norse One
-- **Status:** 🟢 Active
+Each user needs an ACTIVE User row with an individual bcrypt password hash. A learner needs a linked StudentProfile and classroom membership. Link an instructor's StaffProfile to the course and classroom. A verified ParentProfile links the guardian to the family. The previous shared demo password does not grant access to these records. The browser smoke test creates isolated fixtures only in a disposable local database.
 
 ## 🗄️ Database
 
@@ -111,12 +81,9 @@ Prisma provides:
 - Prisma Client
 - Database configuration
 
-## 🚧 Future Development
+## Hosted verification
 
-- Complete assignment submission workflow.
-- Resolve the assignment submission API routing issue.
-- Continue application testing.
-- Complete production-readiness validation.
+Check the public login, a teacher-created assignment, student draft reload, instructor grading and the student's grade page on the deployed hostname. Verify database connectivity, account provisioning and persistence across a restart.
 
 ## 👨‍💻 Developer
 
