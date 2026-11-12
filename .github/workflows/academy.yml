@@ -1,0 +1,38 @@
+name: Academy coursework
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  coursework:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: ci_only
+          POSTGRES_DB: academy_test
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      DATABASE_URL: postgresql://postgres:ci_only@127.0.0.1:5432/academy_test
+      DIRECT_URL: postgresql://postgres:ci_only@127.0.0.1:5432/academy_test
+      AUTH_URL: http://localhost:3000
+      AUTH_TRUST_HOST: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate && npx prisma migrate deploy
+      - run: echo "AUTH_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+      - run: npm run build
+      - run: npm install --no-save --package-lock=false playwright@1.56.1 && npx playwright install --with-deps chromium
+      - name: Verify teacher publishing, draft reload, submission and grading
+        run: |
+          npm start > "$RUNNER_TEMP/academy.log" 2>&1 &
+          trap 'kill $! 2>/dev/null || true' EXIT
+          curl --retry 20 --retry-connrefused --retry-delay 1 -fsS http://localhost:3000/login >/dev/null
+          node scripts/coursework-smoke.mjs
