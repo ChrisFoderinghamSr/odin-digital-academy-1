@@ -4,7 +4,7 @@ import {
   getStudentAssignments,
   getStudentCourses,
   getStudentByUserId,
-} from "@/lib/services/norse-one/student-service";
+} from "@/lib/academy/records";
 
 interface StudentDashboardProps {
   userId: string;
@@ -28,10 +28,10 @@ function formatAcademicLevel(
   return labels[academicLevel] ?? academicLevel;
 }
 
-export default function StudentDashboard({
+export default async function StudentDashboard({
   userId,
 }: StudentDashboardProps) {
-  const student = getStudentByUserId(userId);
+  const student = await getStudentByUserId(userId);
 
   if (!student) {
     return (
@@ -48,10 +48,8 @@ export default function StudentDashboard({
     );
   }
 
-  const courses = getStudentCourses(student.id);
-
-  const assignments =
-    getStudentAssignments(student.id);
+  const assignments = await getStudentAssignments(student.id);
+  const courses = await getStudentCourses(student.id, assignments);
 
   const academicLevel = formatAcademicLevel(
     student.academicLevel
@@ -108,7 +106,7 @@ export default function StudentDashboard({
           <span>GPA</span>
 
           <strong>
-            {student.currentGpa ?? "N/A"}
+            {student.currentGpa?.toString() ?? "N/A"}
           </strong>
 
           <small>
@@ -120,7 +118,7 @@ export default function StudentDashboard({
           <span>ATTENDANCE</span>
 
           <strong>
-            {student.attendanceRate ?? 0}%
+            {student.attendanceRate?.toString() ?? "—"}%
           </strong>
 
           <small>

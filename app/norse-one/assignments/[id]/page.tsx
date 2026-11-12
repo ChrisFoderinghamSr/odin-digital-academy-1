@@ -7,9 +7,9 @@ import NorseOneShell from "@/components/layout/norse-one/NorseOneShell";
 import SubmissionWorkspace from "@/components/norse-one/assignments/SubmissionWorkspace";
 
 import {
-  getStudentAssignmentById,
+  getStudentAssignments,
   getStudentByUserId,
-} from "@/lib/services/norse-one/student-service";
+} from "@/lib/academy/records";
 
 import type {
   AssignmentStatus,
@@ -44,6 +44,7 @@ function getStatusClass(
 function formatDate(
   date: string
 ): string {
+  if (!date) return "No due date";
   const formattedDate = new Date(
     `${date}T12:00:00`
   );
@@ -88,6 +89,7 @@ export default async function AssignmentDetailPage({
   const role =
     session.user.role as NorseOneRole;
 
+  if (role === "TEACHER") redirect("/norse-one/review");
   if (role !== "STUDENT") {
     redirect("/norse-one/dashboard");
   }
@@ -95,7 +97,7 @@ export default async function AssignmentDetailPage({
   const { id } = await params;
 
   const student =
-    getStudentByUserId(
+    await getStudentByUserId(
       session.user.id
     );
 
@@ -119,11 +121,7 @@ export default async function AssignmentDetailPage({
     );
   }
 
-  const assignment =
-    getStudentAssignmentById(
-      student.id,
-      id
-    );
+  const [assignment] = await getStudentAssignments(student.id, id);
 
   if (!assignment) {
     notFound();

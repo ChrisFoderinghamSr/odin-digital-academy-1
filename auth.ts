@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 
 import authConfig from "@/auth.config";
-import { mockUsers } from "@/lib/data/mock/users";
+import { prisma } from "@/lib/database/prisma";
 import type { NorseOneRole } from "@/types/norse-one";
 
 const credentialsSchema = z.object({
@@ -41,33 +41,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const { email, password } = parsed.data;
 
-        const user = mockUsers.find(
-          (candidate) =>
-            candidate.email.toLowerCase() ===
-              email.toLowerCase() &&
-            candidate.active
-        );
-
-        if (!user) {
-          return null;
-        }
-
-        const passwordHash =
-          process.env.NORSE_DEMO_PASSWORD_HASH;
-
-        if (!passwordHash) {
-          console.error(
-            "NORSE_DEMO_PASSWORD_HASH is not configured."
-          );
-
-          return null;
-        }
-
-        const passwordValid =
-          await bcrypt.compare(
-            password,
-            passwordHash
-          );
+        const user = await prisma.user.findFirst({
+          where: { email: { equals: email.trim(), mode: "insensitive" }, status: "ACTIVE" },
+        });
+        if (!user?.passwordHash) return null;
+        const passwordValid = await bcrypt.compare(password, user.passwordHash);
 
         if (!passwordValid) {
           return null;

@@ -1,3 +1,4 @@
+import { coursesFor } from "@/lib/academy/access";
 import { prisma } from "@/lib/database/prisma";
 import { requirePermission } from "@/lib/auth/authorization";
 import { normalizePagination } from "@/lib/database/query-types";
@@ -32,7 +33,7 @@ export interface UpdateCurriculumInput {
 export async function searchCurriculum(
   input: CurriculumSearchInput
 ) {
-  await requirePermission("SEARCH_CURRICULUM");
+  const {user} = await requirePermission("SEARCH_CURRICULUM");
 
   const { page, pageSize } = normalizePagination(
     input.page,
@@ -42,6 +43,8 @@ export async function searchCurriculum(
   const skip = (page - 1) * pageSize;
 
   const where = {
+    course: coursesFor(user),
+    ...(["ADMINISTRATOR","DIRECTOR"].includes(user.role) ? {} : {published:true}),
     ...(input.q
       ? {
           OR: [
@@ -117,10 +120,12 @@ export async function searchCurriculum(
 export async function getCurriculumById(
   curriculumId: string
 ) {
-  await requirePermission("VIEW_CURRICULUM");
+  const {user} = await requirePermission("VIEW_CURRICULUM");
 
-  return prisma.curriculum.findUnique({
+  return prisma.curriculum.findFirst({
     where: {
+      course: coursesFor(user),
+      ...(["ADMINISTRATOR","DIRECTOR"].includes(user.role) ? {} : {published:true}),
       id: curriculumId,
     },
     include: {

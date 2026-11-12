@@ -16,7 +16,8 @@ export async function getStudentSubmission(
       where: {
         id: assignmentId,
 
-        targets: {
+        status: { notIn: ["DRAFT", "ARCHIVED"] },
+          targets: {
           some: {
             studentId,
           },
@@ -68,115 +69,119 @@ export async function getStudentSubmission(
 export async function saveStudentSubmission(
   input: SaveSubmissionInput
 ) {
-  const assignment =
-    await prisma.assignment.findFirst({
-      where: {
-        id: input.assignmentId,
+  return prisma.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT id FROM "StudentProfile" WHERE id = ${input.studentId} FOR UPDATE`;
+    const assignment =
+      await tx.assignment.findFirst({
+        where: {
+          id: input.assignmentId,
 
-        targets: {
-          some: {
+          status: { notIn: ["DRAFT", "ARCHIVED"] },
+          targets: {
+            some: {
+              studentId: input.studentId,
+            },
+          },
+        },
+
+        select: {
+          id: true,
+          status: true,
+        },
+      });
+
+    if (!assignment) {
+      throw new Error(
+        "Assignment is not available to this student."
+      );
+    }
+
+    const existingSubmission =
+      await tx.submission.findUnique({
+        where: {
+          assignmentId_studentId: {
+            assignmentId: input.assignmentId,
             studentId: input.studentId,
           },
         },
-      },
+      });
 
-      select: {
-        id: true,
-        status: true,
-      },
-    });
+    if (
+      existingSubmission?.status ===
+      "GRADED"
+    ) {
+      throw new Error(
+        "A graded assignment cannot be modified."
+      );
+    }
 
-  if (!assignment) {
-    throw new Error(
-      "Assignment is not available to this student."
-    );
-  }
+    if (
+      input.action === "SUBMIT" &&
+      !input.responseText.trim()
+    ) {
+      throw new Error(
+        "A response is required before submitting."
+      );
+    }
 
-  const existingSubmission =
-    await prisma.submission.findUnique({
+    if (
+      existingSubmission?.status === "RETURNED" ||
+      existingSubmission?.status ===
+        "SUBMITTED"
+    ) {
+      throw new Error(
+        "This assignment has already been submitted."
+      );
+    }
+
+    const status =
+      input.action === "SUBMIT"
+        ? "SUBMITTED"
+        : "IN_PROGRESS";
+
+    const responseText =
+      input.responseText.trim();
+
+    return tx.submission.upsert({
       where: {
         assignmentId_studentId: {
-          assignmentId: input.assignmentId,
-          studentId: input.studentId,
+          assignmentId:
+            input.assignmentId,
+          studentId:
+            input.studentId,
         },
       },
-    });
 
-  if (
-    existingSubmission?.status ===
-    "GRADED"
-  ) {
-    throw new Error(
-      "A graded assignment cannot be modified."
-    );
-  }
-
-  if (
-    input.action === "SUBMIT" &&
-    !input.responseText.trim()
-  ) {
-    throw new Error(
-      "A response is required before submitting."
-    );
-  }
-
-  if (
-    input.action === "SUBMIT" &&
-    existingSubmission?.status ===
-      "SUBMITTED"
-  ) {
-    throw new Error(
-      "This assignment has already been submitted."
-    );
-  }
-
-  const status =
-    input.action === "SUBMIT"
-      ? "SUBMITTED"
-      : "IN_PROGRESS";
-
-  const responseText =
-    input.responseText.trim();
-
-  return prisma.submission.upsert({
-    where: {
-      assignmentId_studentId: {
+      create: {
         assignmentId:
           input.assignmentId,
+
         studentId:
           input.studentId,
+
+        status,
+
+        responseText:
+          responseText || null,
+
+        submittedAt:
+          input.action === "SUBMIT"
+            ? new Date()
+            : null,
       },
-    },
 
-    create: {
-      assignmentId:
-        input.assignmentId,
+      update: {
+        status,
 
-      studentId:
-        input.studentId,
+        responseText:
+          responseText || null,
 
-      status,
-
-      responseText:
-        responseText || null,
-
-      submittedAt:
-        input.action === "SUBMIT"
-          ? new Date()
-          : null,
-    },
-
-    update: {
-      status,
-
-      responseText:
-        responseText || null,
-
-      ...(input.action === "SUBMIT"
-        ? {
-            submittedAt: new Date(),
-          }
-        : {}),
-    },
+        ...(input.action === "SUBMIT"
+          ? {
+              submittedAt: new Date(),
+            }
+          : {}),
+      },
+    });
   });
 }

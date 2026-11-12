@@ -9,7 +9,7 @@ import {
   getStudentAssignments,
   getStudentCourses,
   getStudentByUserId,
-} from "@/lib/services/norse-one/student-service";
+} from "@/lib/academy/records";
 
 import type { NorseOneRole } from "@/types/norse-one";
 
@@ -73,7 +73,7 @@ export default async function NorseOneLearningPage() {
     redirect("/norse-one/dashboard");
   }
 
-  const student = getStudentByUserId(
+  const student = await getStudentByUserId(
     session.user.id
   );
 
@@ -95,12 +95,8 @@ export default async function NorseOneLearningPage() {
     );
   }
 
-  const courses = getStudentCourses(
-    student.id
-  );
-
-  const assignments =
-    getStudentAssignments(student.id);
+  const assignments = await getStudentAssignments(student.id);
+  const courses = await getStudentCourses(student.id, assignments);
 
   const nextAssignment =
     assignments
@@ -231,7 +227,7 @@ export default async function NorseOneLearningPage() {
 
             <div className="norse-learning-focus-meta">
               <span>
-                Due {nextAssignment.dueDate}
+                {nextAssignment.dueDate || "No due date"}
               </span>
 
               <span>
@@ -363,7 +359,7 @@ export default async function NorseOneLearningPage() {
 
           <div>
             <strong>
-              {student.attendanceRate ?? 0}%
+              {student.attendanceRate?.toString() ?? "—"}%
             </strong>
 
             <span>Attendance</span>

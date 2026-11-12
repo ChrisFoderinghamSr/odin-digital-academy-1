@@ -8,7 +8,7 @@ import NorseOneShell from "@/components/layout/norse-one/NorseOneShell";
 import {
   getStudentAssignments,
   getStudentByUserId,
-} from "@/lib/services/norse-one/student-service";
+} from "@/lib/academy/records";
 
 import type {
   AssignmentStatus,
@@ -37,6 +37,7 @@ function getStatusClass(
 function formatDueDate(
   date: string
 ): string {
+  if (!date) return "No due date";
   const dueDate = new Date(
     `${date}T12:00:00`
   );
@@ -92,12 +93,13 @@ export default async function AssignmentsPage() {
   const role =
     session.user.role as NorseOneRole;
 
+  if (role === "TEACHER") redirect("/norse-one/review");
   if (role !== "STUDENT") {
     redirect("/norse-one/dashboard");
   }
 
   const student =
-    getStudentByUserId(
+    await getStudentByUserId(
       session.user.id
     );
 
@@ -122,7 +124,7 @@ export default async function AssignmentsPage() {
   }
 
   const assignments =
-    getStudentAssignments(student.id);
+    await getStudentAssignments(student.id);
 
   const submitted =
     assignments.filter(
