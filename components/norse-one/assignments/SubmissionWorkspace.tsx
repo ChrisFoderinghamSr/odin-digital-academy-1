@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 interface SubmissionWorkspaceProps {
@@ -10,7 +11,7 @@ interface SubmissionWorkspaceProps {
 interface SubmissionResponse {
   submission: {
     id: string;
-    response: string | null;
+    responseText: string | null;
     status: string;
     submittedAt: string | null;
     feedback: string | null;
@@ -33,6 +34,7 @@ export default function SubmissionWorkspace({
   assignmentId,
   initialStatus,
 }: SubmissionWorkspaceProps) {
+  const router = useRouter();
   const [response, setResponse] = useState("");
   const [status, setStatus] = useState(initialStatus);
   const [feedback, setFeedback] = useState<string | null>(
@@ -76,7 +78,7 @@ export default function SubmissionWorkspace({
 
         if (data.submission) {
           setResponse(
-            data.submission.response ?? ""
+            data.submission.responseText ?? ""
           );
 
           setStatus(data.submission.status);
@@ -136,7 +138,7 @@ export default function SubmissionWorkspace({
           },
           body: JSON.stringify({
             action,
-            response: response.trim(),
+            responseText: response.trim(),
           }),
         }
       );
@@ -161,9 +163,10 @@ export default function SubmissionWorkspace({
         setStatus(data.submission.status);
 
         setResponse(
-          data.submission.response ?? ""
+          data.submission.responseText ?? ""
         );
 
+        router.refresh();
         setFeedback(
           action === "SUBMIT"
             ? "Your assignment has been submitted successfully."

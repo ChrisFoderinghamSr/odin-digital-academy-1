@@ -23,7 +23,7 @@ interface SubmissionRequest {
 async function getAuthenticatedStudentId() {
   const session = await auth();
 
-  if (!session?.user?.id) {
+  if (!session?.user?.id || session.user.role !== "STUDENT") {
     return null;
   }
 
@@ -141,7 +141,7 @@ export async function POST(
     }
 
     if (
-      typeof body.responseText !==
+      !body || typeof body.responseText !==
       "string"
     ) {
       return NextResponse.json(
