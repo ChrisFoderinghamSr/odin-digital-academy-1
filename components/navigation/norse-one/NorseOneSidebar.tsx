@@ -38,26 +38,14 @@ const navigation: NavigationItem[] = [
     label: "My Learning",
     href: "/norse-one/learning",
     icon: "◇",
-    roles: [
-      "STUDENT",
-      "PARENT",
-      "TEACHER",
-      "ASSISTANT",
-    ],
+    roles: ["STUDENT"],
   },
-
   {
     label: "Assignments",
     href: "/norse-one/assignments",
-    icon: "✓",
-    roles: [
-      "STUDENT",
-      "PARENT",
-      "TEACHER",
-      "ASSISTANT",
-    ],
+    icon: "▤",
+    roles: ["STUDENT", "TEACHER"],
   },
-
   {
     label: "Grades",
     href: "/norse-one/grades",

@@ -119,3 +119,19 @@ Third-party dependencies remain subject to their respective licenses.
 **Build. Learn. Develop. Advance.**
 
 © 2026 Christian Foderingham — All Rights Reserved.
+
+### Provision accounts and an enrolled classroom
+
+Run `node scripts/provision-classroom.mjs /private/path/roster.json` from the release checkout after migration. Use an operator-controlled roster outside the repository. It assigns guardian access, so verify the family relationship before importing. Use a distinct password environment variable for each new user. Repeating an import preserves an existing account's password. Use distinct course codes per term.
+
+```json
+{
+  "year": "2026–27", "yearStart": "2026-08-01", "yearEnd": "2027-06-01", "term": "FALL",
+  "courseCode": "JS-F26", "courseName": "JavaScript", "subject": "Programming", "level": "GRADE_5", "room": "Lab",
+  "teacher": {"email":"instructor@example.test","firstName":"Example","lastName":"Instructor","employeeId":"T01","passwordEnv":"TEACHER_INITIAL_PASSWORD"},
+  "students": [{"email":"learner@example.test","firstName":"Example","lastName":"Learner","studentNumber":"S01","passwordEnv":"STUDENT_INITIAL_PASSWORD",
+    "guardian":{"email":"guardian@example.test","firstName":"Example","lastName":"Guardian","passwordEnv":"GUARDIAN_INITIAL_PASSWORD"}}]
+}
+```
+
+An optional `administrator` uses the same email, name and passwordEnv fields as a guardian. Classroom provisioning does not send invitation emails.
